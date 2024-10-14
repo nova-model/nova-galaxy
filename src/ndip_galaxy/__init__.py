@@ -1,8 +1,7 @@
 import importlib.metadata
 
-from .main import main
-from .main_class import MainClass
+from .ndip import NDIP
 
-__all__ = ["MainClass", "main"]
+__all__ = ["NDIP"]
 
 __version__ = importlib.metadata.version(__package__)
