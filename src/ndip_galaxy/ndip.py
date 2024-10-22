@@ -1,25 +1,27 @@
 """
-This module contains the NDIP class, which is responsible for managing interactions
-with a Galaxy server instance. It supports operations such as running reductions,
-retrieving job statuses, and fetching job outputs. The Galaxy class abstracts these
-operations to allow easy integration into other Python applications and scripts.
+The NDIP class is responsible for managing interactions with a Galaxy server instance.
+
+It supports operations such as running tools, retrieving job statuses, and fetching job outputs.
+The NDIP class abstracts these operations to allow easy integration into other Python applications and scripts.
 """
 
-from io import BytesIO
 import os
-from typing import List, Optional, Any, Dict, Callable
 import zipfile
-from bioblend import galaxy
+from io import BytesIO
+from typing import Any, Callable, Dict, List, Optional
+
 import bioblend
-from bioblend.galaxy.tools.inputs import inputs
 import requests
+from bioblend import galaxy
+from bioblend.galaxy.tools.inputs import inputs
 
 
 class DatasetRegistrationError(Exception):
     """
     Exception raised when dataset registration fails.
 
-    Attributes:
+    Attributes
+    ----------
         message (str): Explanation of the error.
         details (Any): Additional details about the error.
     """
@@ -33,7 +35,8 @@ class DatasetRegistrationError(Exception):
 class GalaxyConnectionError(Exception):
     """Exception raised for errors in the connection.
 
-    Attributes:
+    Attributes
+    ----------
         message (str): Explanation of the error.
     """
 
@@ -44,9 +47,10 @@ class GalaxyConnectionError(Exception):
 
 class NDIP:
     """
-    Class to manage Galaxy instance interactions for running and managing reductions.
+    Class to manage NDIP instance interactions for running and managing reductions.
 
-    Attributes:
+    Attributes
+    ----------
         galaxy_url (Optional[str]): URL of the Galaxy instance.
         galaxy_api_key (Optional[str]): API key for the Galaxy instance.
         namespace (str): Namespace for Galaxy histories.
@@ -59,8 +63,9 @@ class NDIP:
         namespace: str = "default",
     ) -> None:
         """
-        Initializes the Galaxy instance with the provided URL and API key, or falls back
-        to environment variables if they are not provided.
+        Initializes the NDIP instance with the provided URL and API key.
+
+        Creates a new instance of NDIP, or falls back to environment variables if they are not provided.
 
         Args:
             galaxy_url (Optional[str]): URL of the Galaxy instance.
@@ -75,27 +80,29 @@ class NDIP:
 
     @property
     def namespace(self) -> str:
-        """Get namespace"""
+        """Get namespace."""
         return self._namespace
 
     @namespace.setter
     def namespace(self, value: str) -> None:
-        """Set namespace"""
+        """Set namespace."""
         if not value:
             raise ValueError("Namespace cannot be empty.")
         self._namespace = value
 
     @property
     def history_id(self) -> str:
-        """Get or create history ID based on the current namespace"""
+        """Get or create history ID based on the current namespace."""
         return self._get_history_id(self._namespace)
 
     def connect(self) -> None:
         """
         Connects to the Galaxy instance using the provided URL and API key.
+
         Raises a ValueError if the URL or API key is not provided.
 
-        Raises:
+        Raises
+        ------
             ValueError: If the Galaxy URL or API key is not provided.
         """
         if not self.galaxy_url or not self.galaxy_api_key:
@@ -115,7 +122,8 @@ class NDIP:
         Args:
             name (Optional[str]): Optional pre-specified history name.
 
-        Returns:
+        Returns
+        -------
             List[Dict[str, str]]: List of histories with their names and IDs.
         """
         histories = self.galaxy_instance.histories.get_histories(name=name)
@@ -124,15 +132,18 @@ class NDIP:
     def _get_history_id(self, history_name: str) -> str:
         """
         Retrieves the ID of a history from the Galaxy server based on the provided history name.
+
         If no history exists with the specified name, a new one is created.
 
         Args:
             history_name (str): The name of the history.
 
-        Returns:
+        Returns
+        -------
             str: The history ID.
 
-        Raises:
+        Raises
+        ------
             bioblend.ConnectionError: If there is an error connecting to the Galaxy server.
         """
         try:
@@ -154,7 +165,8 @@ class NDIP:
         Args:
             result_dataset_id (str): The ID of the dataset.
 
-        Raises:
+        Raises
+        ------
             DatasetRegistrationError: If the dataset registration fails.
         """
         dataset_client = galaxy.datasets.DatasetClient(self.galaxy_instance)
@@ -183,7 +195,8 @@ class NDIP:
             runs_to_register (List[int]): List of run numbers to register.
             cancel_callback (Optional[Callable[[], bool]]): Optional callback to cancel operation.
 
-        Returns:
+        Returns
+        -------
             List[str]: List of dataset IDs.
         """
         n_files = len(runs_to_register)
@@ -219,10 +232,12 @@ class NDIP:
         Args:
             filepath (str): Path to the configuration file.
 
-        Returns:
+        Returns
+        -------
             str: The dataset ID of the uploaded file.
 
-        Raises:
+        Raises
+        ------
             RuntimeError: If the file upload fails.
         """
         try:
@@ -249,7 +264,8 @@ class NDIP:
             dataset_id (str): The ID of the dataset to download.
             save_path (str): The local path to save the downloaded file.
 
-        Raises:
+        Raises
+        ------
             RuntimeError: If the dataset cannot be downloaded.
         """
         if not os.path.exists(save_path):
