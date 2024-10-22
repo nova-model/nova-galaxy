@@ -1,5 +1,5 @@
 """
-This module contains the Galaxy class, which is responsible for managing interactions
+This module contains the NDIP class, which is responsible for managing interactions
 with a Galaxy server instance. It supports operations such as running reductions,
 retrieving job statuses, and fetching job outputs. The Galaxy class abstracts these
 operations to allow easy integration into other Python applications and scripts.
@@ -72,7 +72,6 @@ class NDIP:
         self.galaxy_url = galaxy_url or os.getenv("GALAXY_URL")
         self.galaxy_api_key = galaxy_key or os.getenv("GALAXY_API_KEY")
         self._namespace = namespace
-        self._connect_to_galaxy()
 
     @property
     def namespace(self) -> str:
@@ -91,7 +90,7 @@ class NDIP:
         """Get or create history ID based on the current namespace"""
         return self._get_history_id(self._namespace)
 
-    def _connect_to_galaxy(self) -> None:
+    def connect(self) -> None:
         """
         Connects to the Galaxy instance using the provided URL and API key.
         Raises a ValueError if the URL or API key is not provided.
