@@ -1,8 +1,8 @@
 """Test package."""
 
-from ndip_galaxy import MainClass
+from ndip_galaxy import NDIP
 
-
-def test_version() -> None:
-    ndip_galaxy = MainClass()
-    assert ndip_galaxy.name("test") == "test"
+def test_namespace() -> None:
+    ndip_galaxy = NDIP()
+    ndip_galaxy.namespace = "test"
+    assert ndip_galaxy.namespace == "test"
