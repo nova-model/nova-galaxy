@@ -106,14 +106,10 @@ class NDIP:
             ValueError: If the Galaxy URL or API key is not provided.
         """
         if not self.galaxy_url or not self.galaxy_api_key:
-            raise ValueError(
-                "Galaxy URL and API key must be provided or set in environment variables."
-            )
+            raise ValueError("Galaxy URL and API key must be provided or set in environment variables.")
         if not isinstance(self.galaxy_url, str):
             raise ValueError("Galaxy URL must be a string")
-        self.galaxy_instance = galaxy.GalaxyInstance(
-            url=self.galaxy_url, key=self.galaxy_api_key
-        )
+        self.galaxy_instance = galaxy.GalaxyInstance(url=self.galaxy_url, key=self.galaxy_api_key)
 
     def _get_histories(self, name: Optional[str] = None) -> List[Dict[str, str]]:
         """
@@ -154,9 +150,7 @@ class NDIP:
             new_history = self.galaxy_instance.histories.create_history(history_name)
             return new_history["id"]
         except bioblend.ConnectionError as error:
-            raise RuntimeError(
-                f"Failed to create history with name {history_name}. Error: {error}"
-            ) from error
+            raise RuntimeError(f"Failed to create history with name {history_name}. Error: {error}") from error
 
     def _wait_for_ingested_dataset(self, result_dataset_id: str) -> None:
         """
@@ -172,9 +166,7 @@ class NDIP:
         dataset_client = galaxy.datasets.DatasetClient(self.galaxy_instance)
         wait_res = dataset_client.wait_for_dataset(result_dataset_id, check=False)
         if wait_res["state"] != "ok":
-            details = self.galaxy_instance.histories.show_dataset_provenance(
-                self.namespace, result_dataset_id
-            )
+            details = self.galaxy_instance.histories.show_dataset_provenance(self.namespace, result_dataset_id)
             raise DatasetRegistrationError("Register failed: ", details)
 
     def ingest_run_numbers(
@@ -202,17 +194,12 @@ class NDIP:
         n_files = len(runs_to_register)
         tool_inputs = inputs()
         for i in range(n_files):
-            fname = (
-                f"/{facility}/{instrument}/{ipts}/nexus/"
-                f"{instrument}_{runs_to_register[i]}.nxs.h5"
-            )
+            fname = f"/{facility}/{instrument}/{ipts}/nexus/" f"{instrument}_{runs_to_register[i]}.nxs.h5"
             tool_inputs = tool_inputs.set_param(f"series_{i}|input", fname)
 
         meta = None
         if cancel_callback is None or not cancel_callback():
-            meta = self.galaxy_instance.tools.run_tool(
-                self.history_id, "neutrons_register", tool_inputs
-            )
+            meta = self.galaxy_instance.tools.run_tool(self.history_id, "neutrons_register", tool_inputs)
 
         if meta is None:
             return []
@@ -289,10 +276,6 @@ class NDIP:
             print(f"Files extracted to {save_path}")
             return save_path
         except requests.exceptions.RequestException as error:
-            raise RuntimeError(
-                f"Failed to download dataset {dataset_id}. Error: {error}"
-            ) from error
+            raise RuntimeError(f"Failed to download dataset {dataset_id}. Error: {error}") from error
         except zipfile.BadZipFile as zip_error:
-            raise RuntimeError(
-                f"Failed to extract zip file. Error: {zip_error}"
-            ) from zip_error
+            raise RuntimeError(f"Failed to extract zip file. Error: {zip_error}") from zip_error
