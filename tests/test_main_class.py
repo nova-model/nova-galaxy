@@ -1,9 +1,9 @@
 """Test package."""
 
-from ndip_galaxy import NDIP
+from nova.galaxy import NOVA
 
 
 def test_namespace() -> None:
-    ndip_galaxy = NDIP()
-    ndip_galaxy.namespace = "test"
-    assert ndip_galaxy.namespace == "test"
+    nova = NOVA()
+    nova.namespace = "test"
+    assert nova.namespace == "test"

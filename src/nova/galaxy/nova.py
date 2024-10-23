@@ -1,8 +1,8 @@
 """
-The NDIP class is responsible for managing interactions with a Galaxy server instance.
+The NOVA class is responsible for managing interactions with a Galaxy server instance.
 
 It supports operations such as running tools, retrieving job statuses, and fetching job outputs.
-The NDIP class abstracts these operations to allow easy integration into other Python applications and scripts.
+The NOVA class abstracts these operations to allow easy integration into other Python applications and scripts.
 """
 
 import os
@@ -45,9 +45,9 @@ class GalaxyConnectionError(Exception):
         super().__init__(self.message)
 
 
-class NDIP:
+class NOVA:
     """
-    Class to manage NDIP instance interactions for running and managing reductions.
+    Class to manage NOVA instance interactions for running and managing reductions.
 
     Attributes
     ----------
@@ -63,9 +63,9 @@ class NDIP:
         namespace: str = "default",
     ) -> None:
         """
-        Initializes the NDIP instance with the provided URL and API key.
+        Initializes the NOVA instance with the provided URL and API key.
 
-        Creates a new instance of NDIP, or falls back to environment variables if they are not provided.
+        Creates a new instance of NOVA, or falls back to environment variables if they are not provided.
 
         Args:
             galaxy_url (Optional[str]): URL of the Galaxy instance.

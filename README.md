@@ -1,15 +1,15 @@
-# ndip-galaxy
+# nova-galaxy
 =======================
 
 # Introduction
 
-This is the repository for ndip-galaxy project. This project creates a python package that makes it easier to work with the ORNL NDIP Galaxy instance.
+This is the repository for the nova-galaxy project. This project creates a python package that makes it easier to work with the ORNL Galaxy instance.
 
 ## Installation
 You can install this package directly with
 
 ```commandline
-pip install ndip-galaxy
+pip install nova-galaxy
 ```
 
 or with Poetry by placing the following in your pyproject.toml file (you can version lock with typical Semantic Versioning syntax)
@@ -17,7 +17,7 @@ or with Poetry by placing the following in your pyproject.toml file (you can ver
 
 ```
 [tool.poetry.dependencies]
-ndip-galaxy = "*"
+nova-galaxy = "*"
 ```
 
 ## Formatting

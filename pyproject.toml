@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "ndip-galaxy"
+name = "nova-galaxy"
 version = "0.1.0"
-description = "Utilties for accessing the ORNL NDIP Galaxy instance"
+description = "Utilties for accessing the ORNL Galaxy instance"
 authors = []
 readme = "README.md"
 license = "MIT"
-keywords = ["NDIP", "Galaxy", "python"]
+keywords = ["NOVA", "Galaxy", "python"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -81,4 +81,4 @@ ruff = ">=0.6.2"
 copier=">=9.3"
 
 [tool.poetry.scripts]
-ndip_galaxy = "ndip_galaxy:main"
+nova_galaxy = "nova_galaxy:main"
