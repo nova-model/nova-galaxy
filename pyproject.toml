@@ -6,6 +6,9 @@ authors = []
 readme = "README.md"
 license = "MIT"
 keywords = ["NOVA", "Galaxy", "python"]
+packages = [
+	{include = "src/nova"}
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
