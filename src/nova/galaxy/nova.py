@@ -111,7 +111,7 @@ class NOVA:
             raise ValueError("Galaxy URL must be a string")
         self.galaxy_instance = galaxy.GalaxyInstance(url=self.galaxy_url, key=self.galaxy_api_key)
 
-    def _get_histories(self, name: Optional[str] = None) -> List[Dict[str, str]]:
+    def get_histories(self, name: Optional[str] = None) -> List[Dict[str, str]]:
         """
         Retrieves a list of histories from the Galaxy server, optionally filtering by name.
 
@@ -143,7 +143,7 @@ class NOVA:
             bioblend.ConnectionError: If there is an error connecting to the Galaxy server.
         """
         try:
-            histories = self._get_histories(name=history_name)
+            histories = self.get_histories(name=history_name)
             if histories:
                 return histories[0]["id"]
 
@@ -212,12 +212,12 @@ class NOVA:
 
         return [output["id"] for output in meta["outputs"]]
 
-    def upload_file(self, filepath: str) -> str:
+    def upload_file(self, file_path: str, name: Optional[str] = None) -> str:
         """
-        Uploads a configuration file to the Galaxy server.
+        Uploads a file to the Galaxy server using the current history.
 
         Args:
-            filepath (str): Path to the configuration file.
+            file_path (str): Path to the file.
 
         Returns
         -------
@@ -228,20 +228,10 @@ class NOVA:
             RuntimeError: If the file upload fails.
         """
         try:
-            with open(filepath, "r", encoding="utf-8") as file:
-                config_content = file.read()
-                if not config_content.strip():
-                    raise ValueError("Config file is empty")
-
-            response = self.galaxy_instance.tools.paste_content(
-                config_content,
-                history_id=self.history_id,
-                file_name=filepath,
-            )
-            config_id = response["outputs"][0]["id"]
-            return config_id
+            result = self.galaxy_instance.tools.upload_file(file_path, self.history_id, file_name=name)
+            return result["outputs"][0]["id"]
         except (IOError, KeyError, bioblend.ConnectionError, ValueError) as error:
-            raise RuntimeError(f"Failed to upload config file: {error}") from error
+            raise RuntimeError(f"Failed to upload file: {error}") from error
 
     def download_result(self, dataset_id: str, save_path: str) -> str:
         """
