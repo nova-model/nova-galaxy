@@ -7,7 +7,7 @@ readme = "README.md"
 license = "MIT"
 keywords = ["NOVA", "Galaxy", "python"]
 packages = [
-	{include = "src/nova"}
+	{include = "nova", from ="src"}
 ]
 
 [tool.poetry.dependencies]

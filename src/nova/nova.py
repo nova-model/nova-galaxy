@@ -15,6 +15,7 @@ import requests
 from bioblend import galaxy
 from bioblend.galaxy.tools.inputs import inputs
 
+from .data_store import Datastore
 
 class DatasetRegistrationError(Exception):
     """
@@ -45,7 +46,7 @@ class GalaxyConnectionError(Exception):
         super().__init__(self.message)
 
 
-class NOVA:
+class Nova:
     """
     Class to manage NOVA instance interactions for running and managing reductions.
 
@@ -110,6 +111,12 @@ class NOVA:
         if not isinstance(self.galaxy_url, str):
             raise ValueError("Galaxy URL must be a string")
         self.galaxy_instance = galaxy.GalaxyInstance(url=self.galaxy_url, key=self.galaxy_api_key)
+
+
+    def create_data_store(self, name: str) -> Datastore:
+        self.galaxy_instance.histories.create_history(name=name)["id"]
+        return Datastore(name, self)
+
 
     def get_histories(self, name: Optional[str] = None) -> List[Dict[str, str]]:
         """
@@ -269,3 +276,6 @@ class NOVA:
             raise RuntimeError(f"Failed to download dataset {dataset_id}. Error: {error}") from error
         except zipfile.BadZipFile as zip_error:
             raise RuntimeError(f"Failed to extract zip file. Error: {zip_error}") from zip_error
+
+def main():
+    print("hello")
