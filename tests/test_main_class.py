@@ -1,6 +1,6 @@
 """Test package."""
 
-from nova import Nova
+from nova.galaxy import Nova
 
 
 def test_namespace() -> None:

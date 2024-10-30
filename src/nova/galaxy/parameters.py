@@ -4,14 +4,14 @@ Parameters
 
 
 from .dataset import Dataset
-from typing import Dict, Union
+from typing import Dict, Any
 
 
 class Parameters:
     """this class is justa specialized map wrapper basically"""
 
     def __init__(self) -> None:
-        self.inputs: Dict[str, Union[str, int, bool, AbstractData]] = {}
+        self.inputs: Dict[str, Any] = {}
 
 
     def add_input(self, name: str, dataset: Dataset) -> None:

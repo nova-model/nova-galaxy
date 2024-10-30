@@ -280,6 +280,3 @@ class Nova:
             raise RuntimeError(f"Failed to download dataset {dataset_id}. Error: {error}") from error
         except zipfile.BadZipFile as zip_error:
             raise RuntimeError(f"Failed to extract zip file. Error: {zip_error}") from zip_error
-
-def main():
-    print("hello")

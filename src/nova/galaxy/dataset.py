@@ -4,14 +4,10 @@
 from abc import ABC
 from enum import Enum
 from bioblend.galaxy.datasets import DatasetClient, DatasetCollectionClient
+from typing import Dict, Union
 from .data_store import Datastore
+from .nova import Nova
 
-
-
-
-
-def upload_datasets() -> None:
-    pass
 
 
 class DataState(Enum):
@@ -22,6 +18,12 @@ class DataState(Enum):
 
 
 class AbstractData(ABC):
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.path: str = ""
+        self.id: Union[str, None] = ""
+        self.store: Union[None, Datastore] = None
 
     def upload(self, store: Datastore) -> None:
         raise NotImplementedError()
@@ -67,3 +69,19 @@ class DatasetCollection(AbstractData):
             dataset_client = DatasetCollectionClient(self.store.nova.galaxy_instance)
             dataset_client.download_dataset_collection(self.id, file_path=local_path)
             dataset_client.wait_for_dataset_collection(self.id)
+
+
+
+def upload_datasets(store: Datastore, datasets: Dict[str, AbstractData]) -> Dict[str, str]:
+    galaxy_instance = store.nova.galaxy_instance
+    dataset_client = DatasetClient(galaxy_instance)
+    history_id = galaxy_instance.histories.get_histories(name=store.name)[0]["id"]
+    dataset_ids = {}
+    for name,dataset in datasets.items():
+        dataset_id = galaxy_instance.tools.upload_file(path=dataset.path, history_id=history_id)
+        dataset_ids[name] = dataset_id
+        dataset.id = dataset_id
+        dataset.store = store
+    for dataset in dataset_ids.values():
+            dataset_client.wait_for_dataset(dataset)
+    return dataset_ids
