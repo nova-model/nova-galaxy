@@ -17,6 +17,8 @@ from bioblend.galaxy.tools.inputs import inputs
 
 from .data_store import Datastore
 
+from .test import Test
+
 class DatasetRegistrationError(Exception):
     """
     Exception raised when dataset registration fails.
@@ -73,6 +75,8 @@ class Nova:
             galaxy_key (Optional[str]): API key for the Galaxy instance.
             namespace (str): Namespace for Galaxy histories.
         """
+        self.t = Test()
+        print("aaa")
         if not namespace:
             raise ValueError("Namespace cannot be empty.")
         self.galaxy_url = galaxy_url or os.getenv("GALAXY_URL")
