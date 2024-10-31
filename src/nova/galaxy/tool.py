@@ -48,27 +48,30 @@ class Tool(AbstractWork):
                 tool_inputs.set_param(param, val)
 
         ids = upload_datasets(store=data_store, datasets=datasets_to_upload)
-        for param, val  in ids.items():
-            tool_inputs.set_param(param, val)
+        for param, val in ids.items():
+            tool_inputs.set_dataset_param(param, val['outputs'][0]['id'])
 
         # Run tool and wait for job to finish
-        results = galaxy_instance.run_tool(history_id, self.id, tool_inputs)
+        results = galaxy_instance.tools.run_tool(history_id=history_id, tool_id=self.id, tool_inputs=tool_inputs)
 
-        galaxy_instance.jobs.wait_for_job(job_id=results['creating_job'])
+        for job in results['jobs']:
+            galaxy_instance.jobs.wait_for_job(job_id=job['id'])
         
 
         # Collect output datasets and dataset collections
-        result_collections = results['output_collections']
         result_datasets = results['outputs']
+        result_collections = results['output_collections']
         if result_datasets:
             for dataset in result_datasets:
                 d = Dataset("")
                 d.id = dataset['id']
-                outputs[dataset["name"]] = d
+                d.store = data_store
+                outputs[dataset["output_name"]] = d
         if result_collections:
             for collection in result_collections:
                 dc = DatasetCollection("")
                 dc.id = collection['id']
-                outputs[collection["name"]] = d
+                d.store = data_store
+                outputs[collection["output_name"]] = d
 
         return outputs

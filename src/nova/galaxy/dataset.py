@@ -3,8 +3,9 @@
 """
 from abc import ABC
 from enum import Enum
-from bioblend.galaxy.datasets import DatasetClient, DatasetCollectionClient
-from typing import Dict, Union
+from bioblend.galaxy.datasets import DatasetClient
+from bioblend.galaxy.dataset_collections import DatasetCollectionClient
+from typing import Any, Dict, Union
 from .data_store import Datastore
 from .nova import Nova
 
@@ -15,7 +16,20 @@ class DataState(Enum):
     IN_GALAXY = 2
     UPLOADING = 3
 
+class DatasetRegistrationError(Exception):
+    """
+    Exception raised when dataset registration fails.
 
+    Attributes
+    ----------
+        message (str): Explanation of the error.
+        details (Any): Additional details about the error.
+    """
+
+    def __init__(self, message: str, details: Any):
+        self.message = message
+        self.details = details
+        super().__init__(self.message, self.details)
 
 class AbstractData(ABC):
 
@@ -83,5 +97,5 @@ def upload_datasets(store: Datastore, datasets: Dict[str, AbstractData]) -> Dict
         dataset.id = dataset_id
         dataset.store = store
     for dataset in dataset_ids.values():
-            dataset_client.wait_for_dataset(dataset)
+        dataset_client.wait_for_dataset(dataset['outputs'][0]['id'])
     return dataset_ids

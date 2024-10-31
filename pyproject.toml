@@ -7,7 +7,7 @@ readme = "README.md"
 license = "MIT"
 keywords = ["NOVA", "Galaxy", "python"]
 packages = [
-	{include = "nova", from ="src"}
+    {include = "nova", from ="src"}
 ]
 
 
@@ -80,6 +80,3 @@ coverage = ">=6.4.3"
 pytest = "*"
 ruff = ">=0.6.2"
 copier=">=9.3"
-
-[tool.poetry.scripts]
-nova_galaxy = "nova_galaxy:main"
