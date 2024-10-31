@@ -61,6 +61,7 @@ class Nova:
         if not isinstance(self.galaxy_url, str):
             raise ValueError("Galaxy URL must be a string")
         self.galaxy_instance = galaxy.GalaxyInstance(url=self.galaxy_url, key=self.galaxy_api_key)
+        self.galaxy_instance.config.get_version()
 
     def create_data_store(self, name: str) -> Datastore:
         """Creates a datastore with the given name."""
