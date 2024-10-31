@@ -1,19 +1,17 @@
 """
-    Tool
+Tool
 """
 
 from typing import Any, Dict, List
 
 from bioblend import galaxy
 
-from .dataset import AbstractData, Dataset, DatasetCollection, upload_datasets
 from .data_store import Datastore
+from .dataset import AbstractData, Dataset, DatasetCollection, upload_datasets
 from .parameters import Parameters
 
 
-
 class AbstractWork:
-
     def __init__(self, id: str):
         self.id = id
 
@@ -28,7 +26,6 @@ class AbstractWork:
 
 
 class Tool(AbstractWork):
-
     def __init__(self, id: str):
         super().__init__(id)
 
@@ -41,37 +38,36 @@ class Tool(AbstractWork):
 
         # Set Tool Inputs
         tool_inputs = galaxy.tools.inputs.inputs()
-        for param, val in params.inputs.items(): 
+        for param, val in params.inputs.items():
             if isinstance(val, AbstractData):
                 datasets_to_upload[param] = val
-            else: 
+            else:
                 tool_inputs.set_param(param, val)
 
         ids = upload_datasets(store=data_store, datasets=datasets_to_upload)
         for param, val in ids.items():
-            tool_inputs.set_dataset_param(param, val['outputs'][0]['id'])
+            tool_inputs.set_dataset_param(param, val)
 
         # Run tool and wait for job to finish
         results = galaxy_instance.tools.run_tool(history_id=history_id, tool_id=self.id, tool_inputs=tool_inputs)
 
-        for job in results['jobs']:
-            galaxy_instance.jobs.wait_for_job(job_id=job['id'])
-        
+        for job in results["jobs"]:
+            galaxy_instance.jobs.wait_for_job(job_id=job["id"])
 
         # Collect output datasets and dataset collections
-        result_datasets = results['outputs']
-        result_collections = results['output_collections']
+        result_datasets = results["outputs"]
+        result_collections = results["output_collections"]
         if result_datasets:
             for dataset in result_datasets:
-                d = Dataset("")
-                d.id = dataset['id']
+                d = Dataset(dataset["output_name"])
+                d.id = dataset["id"]
                 d.store = data_store
                 outputs[dataset["output_name"]] = d
         if result_collections:
             for collection in result_collections:
-                dc = DatasetCollection("")
-                dc.id = collection['id']
-                d.store = data_store
-                outputs[collection["output_name"]] = d
+                dc = DatasetCollection(collection["output_name"])
+                dc.id = collection["id"]
+                dc.store = data_store
+                outputs[collection["output_name"]] = dc
 
         return outputs

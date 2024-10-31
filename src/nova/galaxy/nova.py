@@ -6,15 +6,11 @@ The NOVA class abstracts these operations to allow easy integration into other P
 """
 
 import os
-import zipfile
-from io import BytesIO
-from typing import Any, Callable, Dict, List, Optional
+from typing import Optional
 
 from bioblend import galaxy
-from bioblend.galaxy.tools.inputs import inputs
 
 from .data_store import Datastore
-
 
 
 class GalaxyConnectionError(Exception):
@@ -59,7 +55,6 @@ class Nova:
         self.galaxy_url = galaxy_url or os.getenv("GALAXY_URL")
         self.galaxy_api_key = galaxy_key or os.getenv("GALAXY_API_KEY")
 
-
     def connect(self) -> None:
         """
         Connects to the Galaxy instance using the provided URL and API key.
@@ -75,7 +70,6 @@ class Nova:
         if not isinstance(self.galaxy_url, str):
             raise ValueError("Galaxy URL must be a string")
         self.galaxy_instance = galaxy.GalaxyInstance(url=self.galaxy_url, key=self.galaxy_api_key)
-
 
     def create_data_store(self, name: str) -> Datastore:
         self.galaxy_instance.histories.create_history(name=name)["id"]
