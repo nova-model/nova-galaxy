@@ -1,11 +1,12 @@
 """Contains classes to run tools in Galaxy via Nova."""
 
-from typing import Any, Dict, List
+from typing import List, Union
 
 from bioblend import galaxy
 
 from .data_store import Datastore
 from .dataset import AbstractData, Dataset, DatasetCollection, upload_datasets
+from .outputs import Outputs
 from .parameters import Parameters
 
 
@@ -21,8 +22,8 @@ class AbstractWork:
     def get_inputs(self) -> List[Parameters]:
         return []
 
-    def run(self, data_store: Datastore, params: Parameters) -> Dict[str, AbstractData]:
-        return {}
+    def run(self, data_store: Datastore, params: Parameters) -> Union[Outputs, None]:
+        return None
 
 
 class Tool(AbstractWork):
@@ -31,9 +32,9 @@ class Tool(AbstractWork):
     def __init__(self, id: str):
         super().__init__(id)
 
-    def run(self, data_store: Datastore, params: Parameters) -> Dict[Any, AbstractData]:
+    def run(self, data_store: Datastore, params: Parameters) -> Outputs:
         """Runs this tool in a blocking manner and returns a map of the output datasets and collections."""
-        outputs: Dict[Any, AbstractData] = {}
+        outputs = Outputs()
         galaxy_instance = data_store.nova.galaxy_instance
         datasets_to_upload = {}
 
@@ -65,12 +66,12 @@ class Tool(AbstractWork):
                 d = Dataset(dataset["output_name"])
                 d.id = dataset["id"]
                 d.store = data_store
-                outputs[dataset["output_name"]] = d
+                outputs.add_output(d)
         if result_collections:
             for collection in result_collections:
                 dc = DatasetCollection(collection["output_name"])
                 dc.id = collection["id"]
                 dc.store = data_store
-                outputs[collection["output_name"]] = dc
+                outputs.add_output(dc)
 
         return outputs

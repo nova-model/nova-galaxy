@@ -6,7 +6,8 @@ as well as output data from Galaxy tools.
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Dict, Union
+from pathlib import Path
+from typing import Any, Dict, Optional, Union
 
 from bioblend.galaxy.dataset_collections import DatasetCollectionClient
 from bioblend.galaxy.datasets import DatasetClient
@@ -62,8 +63,9 @@ class AbstractData(ABC):
 class Dataset(AbstractData):
     """Singular file that can be uploaded and used in a Galaxy tool."""
 
-    def __init__(self, path: str):
+    def __init__(self, path: str, name: Optional[str] = None):
         self.path = path
+        self.name = name or Path(path).name
         self.id: str
         self.store: Datastore
 
@@ -88,8 +90,9 @@ class Dataset(AbstractData):
 class DatasetCollection(AbstractData):
     """A group of files that can be uploaded as a collection and collectively be used in a Galaxy tool."""
 
-    def __init__(self, path: str):
+    def __init__(self, path: str, name: Optional[str] = None):
         self.path = path
+        self.name = name or Path(path).name
         self.id: str
         self.store: Datastore
 
