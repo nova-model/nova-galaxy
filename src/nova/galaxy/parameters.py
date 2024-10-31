@@ -1,7 +1,4 @@
-"""
-Parameters
-----------
-"""
+"""Parameters are input values for Galaxy tools."""
 
 from typing import Any, Dict
 
@@ -9,7 +6,7 @@ from .dataset import Dataset
 
 
 class Parameters:
-    """this class is justa specialized map wrapper basically"""
+    """Specialized map wrapper used as an input to a Galaxy tool."""
 
     def __init__(self) -> None:
         self.inputs: Dict[str, Any] = {}

@@ -1,8 +1,10 @@
-"""
-Datasets
+"""Contains Data Abstractions.
+
+AbstractData objects are used to encapsulate data for use in Galaxy tools,
+as well as output data from Galaxy tools.
 """
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Dict, Union
 
@@ -13,6 +15,8 @@ from .data_store import Datastore
 
 
 class DataState(Enum):
+    """The state of a dataset in Galaxy."""
+
     NONE = 1
     IN_GALAXY = 2
     UPLOADING = 3
@@ -35,15 +39,19 @@ class DatasetRegistrationError(Exception):
 
 
 class AbstractData(ABC):
+    """Encapsulates data for use in Galaxy toools."""
+
     def __init__(self) -> None:
         super().__init__()
         self.path: str = ""
         self.id: Union[str, None] = ""
         self.store: Union[None, Datastore] = None
 
+    @abstractmethod
     def upload(self, store: Datastore) -> None:
         raise NotImplementedError()
 
+    @abstractmethod
     def download(self, local_path: str) -> None:
         raise NotImplementedError()
 
@@ -52,6 +60,8 @@ class AbstractData(ABC):
 
 
 class Dataset(AbstractData):
+    """Singular file that can be uploaded and used in a Galaxy tool."""
+
     def __init__(self, path: str):
         self.path = path
 
@@ -67,6 +77,8 @@ class Dataset(AbstractData):
 
 
 class DatasetCollection(AbstractData):
+    """A group of files that can be uploaded as a collection and collectively be used in a Galaxy tool."""
+
     def __init__(self, path: str):
         self.path = path
 
@@ -83,6 +95,7 @@ class DatasetCollection(AbstractData):
 
 
 def upload_datasets(store: Datastore, datasets: Dict[str, AbstractData]) -> Dict[str, str]:
+    """Helper method to upload multiple datasets or collections in parallel."""
     galaxy_instance = store.nova.galaxy_instance
     dataset_client = DatasetClient(galaxy_instance)
     history_id = galaxy_instance.histories.get_histories(name=store.name)[0]["id"]

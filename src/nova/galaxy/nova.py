@@ -1,11 +1,5 @@
-"""
-The NOVA class is responsible for managing interactions with a Galaxy server instance.
+"""The NOVA class is responsible for managing interactions with a Galaxy server instance."""
 
-It supports operations such as running tools, retrieving job statuses, and fetching job outputs.
-The NOVA class abstracts these operations to allow easy integration into other Python applications and scripts.
-"""
-
-import os
 from typing import Optional
 
 from bioblend import galaxy
@@ -28,13 +22,12 @@ class GalaxyConnectionError(Exception):
 
 class Nova:
     """
-    Class to manage NOVA instance interactions for running and managing reductions.
+    Class to manage a Galaxy connection.
 
     Attributes
     ----------
         galaxy_url (Optional[str]): URL of the Galaxy instance.
         galaxy_api_key (Optional[str]): API key for the Galaxy instance.
-        namespace (str): Namespace for Galaxy histories.
     """
 
     def __init__(
@@ -43,17 +36,15 @@ class Nova:
         galaxy_key: Optional[str] = None,
     ) -> None:
         """
-        Initializes the NOVA instance with the provided URL and API key.
-
-        Creates a new instance of NOVA, or falls back to environment variables if they are not provided.
+        Initializes the Nova instance with the provided URL and API key.
 
         Args:
             galaxy_url (Optional[str]): URL of the Galaxy instance.
             galaxy_key (Optional[str]): API key for the Galaxy instance.
             namespace (str): Namespace for Galaxy histories.
         """
-        self.galaxy_url = galaxy_url or os.getenv("GALAXY_URL")
-        self.galaxy_api_key = galaxy_key or os.getenv("GALAXY_API_KEY")
+        self.galaxy_url = galaxy_url
+        self.galaxy_api_key = galaxy_key
 
     def connect(self) -> None:
         """
@@ -72,5 +63,6 @@ class Nova:
         self.galaxy_instance = galaxy.GalaxyInstance(url=self.galaxy_url, key=self.galaxy_api_key)
 
     def create_data_store(self, name: str) -> Datastore:
+        """Creates a datastore with the given name."""
         self.galaxy_instance.histories.create_history(name=name)["id"]
         return Datastore(name, self)

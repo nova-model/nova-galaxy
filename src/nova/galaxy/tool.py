@@ -1,6 +1,4 @@
-"""
-Tool
-"""
+"""Contains classes to run tools in Galaxy via Nova."""
 
 from typing import Any, Dict, List
 
@@ -12,6 +10,8 @@ from .parameters import Parameters
 
 
 class AbstractWork:
+    """Abstraction for a runnable object in Galaxy such as a tool or workflow."""
+
     def __init__(self, id: str):
         self.id = id
 
@@ -26,10 +26,13 @@ class AbstractWork:
 
 
 class Tool(AbstractWork):
+    """Represents a tool from Galaxy that can be run."""
+
     def __init__(self, id: str):
         super().__init__(id)
 
     def run(self, data_store: Datastore, params: Parameters) -> Dict[Any, AbstractData]:
+        """Runs this tool in a blocking manner and returns a map of the output datasets and collections."""
         outputs: Dict[Any, AbstractData] = {}
         galaxy_instance = data_store.nova.galaxy_instance
         history_id = galaxy_instance.histories.get_histories(name=data_store.name)[0]["id"]
