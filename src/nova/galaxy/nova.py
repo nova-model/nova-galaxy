@@ -41,10 +41,10 @@ class Nova:
         Args:
             galaxy_url (Optional[str]): URL of the Galaxy instance.
             galaxy_key (Optional[str]): API key for the Galaxy instance.
-            namespace (str): Namespace for Galaxy histories.
         """
         self.galaxy_url = galaxy_url
         self.galaxy_api_key = galaxy_key
+        self.galaxy_instance: galaxy.GalaxyInstance
 
     def connect(self) -> None:
         """
@@ -64,5 +64,13 @@ class Nova:
 
     def create_data_store(self, name: str) -> Datastore:
         """Creates a datastore with the given name."""
-        self.galaxy_instance.histories.create_history(name=name)["id"]
-        return Datastore(name, self)
+        histories = self.galaxy_instance.histories.get_histories(name=name)
+        if len(histories) > 0:
+            return Datastore(name, self, histories[0]["id"])
+        history_id = self.galaxy_instance.histories.create_history(name=name)["id"]
+        return Datastore(name, self, history_id)
+
+    def remove_data_store(self, name: str) -> None:
+        """Permanently deletes the data store with the given name."""
+        history = self.galaxy_instance.histories.get_histories(name=name)[0]["id"]
+        self.galaxy_instance.histories.delete_history(history_id=history, purge=True)

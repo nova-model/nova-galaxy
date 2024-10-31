@@ -7,8 +7,12 @@ if TYPE_CHECKING:
 
 
 class Datastore:
-    """Groups tool outputs together."""
+    """Groups tool outputs together.
 
-    def __init__(self, name: str, nova_instance: "Nova"):
+    The constructor is not intended for external use. Use nova.galaxy.Nova.create_data_store() instead.
+    """
+
+    def __init__(self, name: str, nova_instance: "Nova", history_id: str):
         self.name = name
         self.nova = nova_instance
+        self.history_id = history_id

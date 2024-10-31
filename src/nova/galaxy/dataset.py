@@ -64,6 +64,8 @@ class Dataset(AbstractData):
 
     def __init__(self, path: str):
         self.path = path
+        self.id: str
+        self.store: Datastore
 
     def upload(self, store: Datastore) -> None:
         galaxy_instance = store.nova.galaxy_instance
@@ -72,15 +74,15 @@ class Dataset(AbstractData):
         dataset_id = galaxy_instance.tools.upload_file(path=self.path, history_id=history_id)
         self.id = dataset_id["outputs"][0]["id"]
         self.store = store
-        if self.id:
-            dataset_client.wait_for_dataset(self.id)
+        dataset_client.wait_for_dataset(self.id)
 
     def download(self, local_path: str) -> None:
         """Downloads this dataset to the local path given."""
         if self.store and self.id:
             dataset_client = DatasetClient(self.store.nova.galaxy_instance)
             dataset_client.download_dataset(self.id, use_default_filename=False, file_path=local_path)
-            dataset_client.wait_for_dataset(self.id)
+        else:
+            raise Exception("Dataset is not present in Galaxy.")
 
 
 class DatasetCollection(AbstractData):
@@ -88,6 +90,8 @@ class DatasetCollection(AbstractData):
 
     def __init__(self, path: str):
         self.path = path
+        self.id: str
+        self.store: Datastore
 
     def upload(self, store: Datastore) -> None:
         """Will need to handle this differently than single datasets."""
@@ -98,7 +102,8 @@ class DatasetCollection(AbstractData):
         if self.store and self.id:
             dataset_client = DatasetCollectionClient(self.store.nova.galaxy_instance)
             dataset_client.download_dataset_collection(self.id, file_path=local_path)
-            dataset_client.wait_for_dataset_collection(self.id)
+        else:
+            raise Exception("Dataset collection is not present in Galaxy.")
 
 
 def upload_datasets(store: Datastore, datasets: Dict[str, AbstractData]) -> Dict[str, str]:

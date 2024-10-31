@@ -35,8 +35,6 @@ class Tool(AbstractWork):
         """Runs this tool in a blocking manner and returns a map of the output datasets and collections."""
         outputs: Dict[Any, AbstractData] = {}
         galaxy_instance = data_store.nova.galaxy_instance
-        history_id = galaxy_instance.histories.get_histories(name=data_store.name)[0]["id"]
-
         datasets_to_upload = {}
 
         # Set Tool Inputs
@@ -52,7 +50,9 @@ class Tool(AbstractWork):
             tool_inputs.set_dataset_param(param, val)
 
         # Run tool and wait for job to finish
-        results = galaxy_instance.tools.run_tool(history_id=history_id, tool_id=self.id, tool_inputs=tool_inputs)
+        results = galaxy_instance.tools.run_tool(
+            history_id=data_store.history_id, tool_id=self.id, tool_inputs=tool_inputs
+        )
 
         for job in results["jobs"]:
             galaxy_instance.jobs.wait_for_job(job_id=job["id"])
