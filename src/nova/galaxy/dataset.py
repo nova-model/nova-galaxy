@@ -66,10 +66,17 @@ class Dataset(AbstractData):
         self.path = path
 
     def upload(self, store: Datastore) -> None:
+        galaxy_instance = store.nova.galaxy_instance
+        dataset_client = DatasetClient(galaxy_instance)
+        history_id = galaxy_instance.histories.get_histories(name=store.name)[0]["id"]
+        dataset_id = galaxy_instance.tools.upload_file(path=self.path, history_id=history_id)
+        self.id = dataset_id["outputs"][0]["id"]
         self.store = store
-        self.id = None
+        if self.id:
+            dataset_client.wait_for_dataset(self.id)
 
     def download(self, local_path: str) -> None:
+        """Downloads this dataset to the local path given."""
         if self.store and self.id:
             dataset_client = DatasetClient(self.store.nova.galaxy_instance)
             dataset_client.download_dataset(self.id, use_default_filename=False, file_path=local_path)
@@ -83,11 +90,11 @@ class DatasetCollection(AbstractData):
         self.path = path
 
     def upload(self, store: Datastore) -> None:
-        self.store = store
-        # won't be none
-        self.id = None
+        """Will need to handle this differently than single datasets."""
+        raise NotImplementedError
 
     def download(self, local_path: str) -> None:
+        """Downloads this dataset collection to the local path given."""
         if self.store and self.id:
             dataset_client = DatasetCollectionClient(self.store.nova.galaxy_instance)
             dataset_client.download_dataset_collection(self.id, file_path=local_path)
