@@ -35,7 +35,7 @@ class Tool(AbstractWork):
     def run(self, data_store: Datastore, params: Parameters) -> Outputs:
         """Runs this tool in a blocking manner and returns a map of the output datasets and collections."""
         outputs = Outputs()
-        galaxy_instance = data_store.nova.galaxy_instance
+        galaxy_instance = data_store.nova_connection.galaxy_instance
         datasets_to_upload = {}
 
         # Set Tool Inputs

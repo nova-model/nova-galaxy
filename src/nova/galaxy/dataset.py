@@ -53,7 +53,11 @@ class AbstractData(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def download(self, local_path: str) -> None:
+    def download(self, local_path: str) -> Any:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_content(self) -> Any:
         raise NotImplementedError()
 
     def cancel_upload(self) -> None:
@@ -70,7 +74,7 @@ class Dataset(AbstractData):
         self.store: Datastore
 
     def upload(self, store: Datastore) -> None:
-        galaxy_instance = store.nova.galaxy_instance
+        galaxy_instance = store.nova_connection.galaxy_instance
         dataset_client = DatasetClient(galaxy_instance)
         history_id = galaxy_instance.histories.get_histories(name=store.name)[0]["id"]
         dataset_id = galaxy_instance.tools.upload_file(path=self.path, history_id=history_id)
@@ -78,11 +82,19 @@ class Dataset(AbstractData):
         self.store = store
         dataset_client.wait_for_dataset(self.id)
 
-    def download(self, local_path: str) -> None:
+    def download(self, local_path: str) -> AbstractData:
         """Downloads this dataset to the local path given."""
         if self.store and self.id:
-            dataset_client = DatasetClient(self.store.nova.galaxy_instance)
+            dataset_client = DatasetClient(self.store.nova_connection.galaxy_instance)
             dataset_client.download_dataset(self.id, use_default_filename=False, file_path=local_path)
+            return self
+        else:
+            raise Exception("Dataset is not present in Galaxy.")
+
+    def get_content(self) -> Any:
+        if self.store and self.id:
+            dataset_client = DatasetClient(self.store.nova_connection.galaxy_instance)
+            return dataset_client.download_dataset(self.id, use_default_filename=False, file_path=None).decode("utf-8")
         else:
             raise Exception("Dataset is not present in Galaxy.")
 
@@ -100,18 +112,30 @@ class DatasetCollection(AbstractData):
         """Will need to handle this differently than single datasets."""
         raise NotImplementedError
 
-    def download(self, local_path: str) -> None:
+    def download(self, local_path: str) -> AbstractData:
         """Downloads this dataset collection to the local path given."""
         if self.store and self.id:
-            dataset_client = DatasetCollectionClient(self.store.nova.galaxy_instance)
+            dataset_client = DatasetCollectionClient(self.store.nova_connection.galaxy_instance)
             dataset_client.download_dataset_collection(self.id, file_path=local_path)
+            return self
+        else:
+            raise Exception("Dataset collection is not present in Galaxy.")
+
+    def get_content(self) -> Any:
+        if self.store and self.id:
+            dataset_client = DatasetCollectionClient(self.store.nova_connection.galaxy_instance)
+            info = dataset_client.show_dataset_collection(self.id)
+            output = ""
+            for element in info["elements"]:
+                output += f"{element['element_identifier']}\n"
+            return output
         else:
             raise Exception("Dataset collection is not present in Galaxy.")
 
 
 def upload_datasets(store: Datastore, datasets: Dict[str, AbstractData]) -> Dict[str, str]:
     """Helper method to upload multiple datasets or collections in parallel."""
-    galaxy_instance = store.nova.galaxy_instance
+    galaxy_instance = store.nova_connection.galaxy_instance
     dataset_client = DatasetClient(galaxy_instance)
     history_id = galaxy_instance.histories.get_histories(name=store.name)[0]["id"]
     dataset_ids = {}

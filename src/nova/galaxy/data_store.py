@@ -3,7 +3,7 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .nova import Nova  # Only imports for type checking
+    from .nova import NovaConnection  # Only imports for type checking
 
 
 class Datastore:
@@ -12,7 +12,11 @@ class Datastore:
     The constructor is not intended for external use. Use nova.galaxy.Nova.create_data_store() instead.
     """
 
-    def __init__(self, name: str, nova_instance: "Nova", history_id: str):
+    def __init__(self, name: str, nova_connection: "NovaConnection", history_id: str) -> None:
         self.name = name
-        self.nova = nova_instance
+        self.nova_connection = nova_connection
         self.history_id = history_id
+        self.persist_store = False
+
+    def persist(self) -> None:
+        self.persist_store = True

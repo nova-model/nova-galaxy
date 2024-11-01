@@ -28,7 +28,13 @@ class Outputs:
         self.data.append(data)
 
     def get_dataset(self, name: str) -> AbstractData:
-        return next(filter(lambda x: isinstance(x, Dataset) and x.name == name, self.data))
+        try:
+            return next(filter(lambda x: isinstance(x, Dataset) and x.name == name, self.data))
+        except StopIteration as e:
+            raise Exception(f"There is no dataset: {name}") from e
 
     def get_collection(self, name: str) -> AbstractData:
-        return next(filter(lambda x: isinstance(x, DatasetCollection) and x.name == name, self.data))
+        try:
+            return next(filter(lambda x: isinstance(x, DatasetCollection) and x.name == name, self.data))
+        except StopIteration as e:
+            raise Exception(f"There is no dataset collection: {name}") from e

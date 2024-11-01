@@ -1,6 +1,7 @@
 """The NOVA class is responsible for managing interactions with a Galaxy server instance."""
 
-from typing import Optional
+from contextlib import contextmanager
+from typing import Generator, List, Optional
 
 from bioblend import galaxy
 
@@ -18,6 +19,35 @@ class GalaxyConnectionError(Exception):
     def __init__(self, message: str):
         self.message = message
         super().__init__(self.message)
+
+
+class NovaConnection:
+    """Manages datastore for current connection.
+
+    Should not be instantiated manually. Use Nova.connect() instead. Any stores created using the connection will
+    be automatically purged after connection is closed, unless Datastore.persist() is called for that store.
+    """
+
+    def __init__(self, galaxy_instance: galaxy.GalaxyInstance):
+        self.galaxy_instance = galaxy_instance
+        self.datastores: List[Datastore] = []
+
+    def create_data_store(self, name: str) -> Datastore:
+        """Creates a datastore with the given name."""
+        histories = self.galaxy_instance.histories.get_histories(name=name)
+        if len(histories) > 0:
+            store = Datastore(name, self, histories[0]["id"])
+            self.datastores.append(store)
+            return store
+        history_id = self.galaxy_instance.histories.create_history(name=name)["id"]
+        store = Datastore(name, self, history_id)
+        self.datastores.append(store)
+        return store
+
+    def remove_data_store(self, store: Datastore) -> None:
+        """Permanently deletes the data store with the given name."""
+        history = self.galaxy_instance.histories.get_histories(name=store.name)[0]["id"]
+        self.galaxy_instance.histories.delete_history(history_id=history, purge=True)
 
 
 class Nova:
@@ -46,7 +76,8 @@ class Nova:
         self.galaxy_api_key = galaxy_key
         self.galaxy_instance: galaxy.GalaxyInstance
 
-    def connect(self) -> None:
+    @contextmanager
+    def connect(self) -> Generator:
         """
         Connects to the Galaxy instance using the provided URL and API key.
 
@@ -62,16 +93,9 @@ class Nova:
             raise ValueError("Galaxy URL must be a string")
         self.galaxy_instance = galaxy.GalaxyInstance(url=self.galaxy_url, key=self.galaxy_api_key)
         self.galaxy_instance.config.get_version()
-
-    def create_data_store(self, name: str) -> Datastore:
-        """Creates a datastore with the given name."""
-        histories = self.galaxy_instance.histories.get_histories(name=name)
-        if len(histories) > 0:
-            return Datastore(name, self, histories[0]["id"])
-        history_id = self.galaxy_instance.histories.create_history(name=name)["id"]
-        return Datastore(name, self, history_id)
-
-    def remove_data_store(self, name: str) -> None:
-        """Permanently deletes the data store with the given name."""
-        history = self.galaxy_instance.histories.get_histories(name=name)[0]["id"]
-        self.galaxy_instance.histories.delete_history(history_id=history, purge=True)
+        conn = NovaConnection(self.galaxy_instance)
+        yield conn
+        # Remove all data stores after execution
+        for store in conn.datastores:
+            if not store.persist_store:
+                conn.remove_data_store(store)
