@@ -1,7 +1,22 @@
 import importlib.metadata
 
-from .nova import NOVA
+from .data_store import Datastore
+from .dataset import Dataset, DatasetCollection, upload_datasets
+from .nova import Nova, NovaConnection
+from .outputs import Outputs
+from .parameters import Parameters
+from .tool import Tool
 
-__all__ = ["NOVA"]
+__all__ = [
+    "Nova",
+    "NovaConnection",
+    "Datastore",
+    "Dataset",
+    "DatasetCollection",
+    "upload_datasets",
+    "Outputs",
+    "Parameters",
+    "Tool",
+]
 
-__version__ = importlib.metadata.version(__package__)
+__version__ = importlib.metadata.version("nova-galaxy")

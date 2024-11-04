@@ -1,14 +1,15 @@
 [tool.poetry]
 name = "nova-galaxy"
-version = "0.1.0"
+version = "0.3.0"
 description = "Utilties for accessing the ORNL Galaxy instance"
-authors = ["Greg Watson <watsongr@ornl.gov>"]
+authors = ["Greg Watson <watsongr@ornl.gov>", "Gregory Cage <cagege@ornl.gov>"]
 readme = "README.md"
 license = "MIT"
 keywords = ["NOVA", "Galaxy", "python"]
 packages = [
-	{include = "src/nova"}
+    {include = "nova", from ="src"}
 ]
+
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -20,9 +21,6 @@ build-backend = "poetry.core.masonry.api"
 
 
 [tool.pytest.ini_options]
-pythonpath = [
-  ".", "src"
-]
 testpaths = ["tests"]
 python_files = ["test*.py"]
 norecursedirs = [".git", "tmp*", "_tmp*", "__pycache__"]
@@ -82,6 +80,3 @@ coverage = ">=6.4.3"
 pytest = "*"
 ruff = ">=0.6.2"
 copier=">=9.3"
-
-[tool.poetry.scripts]
-nova_galaxy = "nova_galaxy:main"
