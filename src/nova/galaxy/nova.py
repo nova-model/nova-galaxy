@@ -6,6 +6,7 @@ from typing import Generator, List, Optional
 from bioblend import galaxy
 
 from .data_store import Datastore
+from .tool import stop_all_tools_in_store
 
 
 class GalaxyConnectionError(Exception):
@@ -28,8 +29,9 @@ class NovaConnection:
     be automatically purged after connection is closed, unless Datastore.persist() is called for that store.
     """
 
-    def __init__(self, galaxy_instance: galaxy.GalaxyInstance):
+    def __init__(self, galaxy_instance: galaxy.GalaxyInstance, galaxy_url: str):
         self.galaxy_instance = galaxy_instance
+        self.galaxy_url = galaxy_url
         self.datastores: List[Datastore] = []
 
     def create_data_store(self, name: str) -> Datastore:
@@ -93,9 +95,10 @@ class Nova:
             raise ValueError("Galaxy URL must be a string")
         self.galaxy_instance = galaxy.GalaxyInstance(url=self.galaxy_url, key=self.galaxy_api_key)
         self.galaxy_instance.config.get_version()
-        conn = NovaConnection(self.galaxy_instance)
+        conn = NovaConnection(self.galaxy_instance, self.galaxy_url)
         yield conn
         # Remove all data stores after execution
         for store in conn.datastores:
+            stop_all_tools_in_store(store)
             if not store.persist_store:
                 conn.remove_data_store(store)
