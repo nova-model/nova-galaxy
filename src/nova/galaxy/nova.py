@@ -99,6 +99,6 @@ class Nova:
         yield conn
         # Remove all data stores after execution
         for store in conn.datastores:
-            stop_all_tools_in_store(store)
             if not store.persist_store:
+                stop_all_tools_in_store(store)
                 conn.remove_data_store(store)

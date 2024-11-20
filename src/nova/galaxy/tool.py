@@ -105,7 +105,10 @@ class Tool(AbstractWork):
             )
             for ep in entry_points.json():
                 if ep["job_id"] == job_id and ep.get("target", None):
-                    return f"{data_store.nova_connection.galaxy_url}{ep['target']}"
+                    url = f"{data_store.nova_connection.galaxy_url}{ep['target']}"
+                    response = galaxy_instance.make_get_request(url)
+                    if response.status_code == 200:
+                        return url
             timer -= 1
             time.sleep(1)
         status = galaxy_instance.jobs.cancel_job(job_id)
