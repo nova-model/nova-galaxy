@@ -1,5 +1,6 @@
 """Contains classes to run tools in Galaxy via Nova."""
 
+import time
 from typing import List, Union
 
 from bioblend import galaxy
@@ -75,3 +76,51 @@ class Tool(AbstractWork):
                 outputs.add_output(dc)
 
         return outputs
+
+    def run_interactive(self, data_store: Datastore, params: Parameters, max_tries: int = 100) -> str:
+        galaxy_instance = data_store.nova_connection.galaxy_instance
+        datasets_to_upload = {}
+        # Set Tool Inputs
+        tool_inputs = galaxy.tools.inputs.inputs()
+        for param, val in params.inputs.items():
+            if isinstance(val, AbstractData):
+                datasets_to_upload[param] = val
+            else:
+                tool_inputs.set_param(param, val)
+
+        ids = upload_datasets(store=data_store, datasets=datasets_to_upload)
+        for param, val in ids.items():
+            tool_inputs.set_dataset_param(param, val)
+
+        # Run tool and wait for job to finish
+        results = galaxy_instance.tools.run_tool(
+            history_id=data_store.history_id, tool_id=self.id, tool_inputs=tool_inputs
+        )
+        job_id = results["jobs"][0]["id"]
+
+        timer = max_tries
+        while timer > 0:
+            entry_points = galaxy_instance.make_get_request(
+                f"{data_store.nova_connection.galaxy_url}/api/entry_points?job_id={job_id}"
+            )
+            for ep in entry_points.json():
+                if ep["job_id"] == job_id and ep.get("target", None):
+                    url = f"{data_store.nova_connection.galaxy_url}{ep['target']}"
+                    response = galaxy_instance.make_get_request(url)
+                    if response.status_code == 200:
+                        return url
+            timer -= 1
+            time.sleep(1)
+        status = galaxy_instance.jobs.cancel_job(job_id)
+        # if status is false, the job has been in a terminal state already, indicating an error somewhere in execution
+        if status:
+            raise Exception("Unable to fetch the URL for interactive tool.")
+        else:
+            raise Exception("Interactive tool was stopped unexpectedly.")
+
+
+def stop_all_tools_in_store(data_store: Datastore) -> None:
+    galaxy_instance = data_store.nova_connection.galaxy_instance
+    jobs = galaxy_instance.jobs.get_jobs(history_id=data_store.history_id)
+    for job in jobs:
+        galaxy_instance.jobs.cancel_job(job["id"])
