@@ -39,8 +39,8 @@ unit-tests:
   script:
     - mkdir reports
     - docker run -u `id -u`:`id -g` -v `pwd`/reports:/src/reports -e NOVA_GALAXY_TEST_GALAXY_KEY=${GALAXY_KEY} -e NOVA_GALAXY_TEST_GALAXY_URL=${GALAXY_URL} ${IMAGE_NAME}:src-${CI_COMMIT_SHA} poetry run coverage run
-    - docker run -u `id -u`:`id -g` -v `pwd`/reports:/src/reports -e NOVA_GALAXY_TEST_GALAXY_KEY=${GALAXY_KEY} -e NOVA_GALAXY_TEST_GALAXY_URL=${GALAXY_URL}${IMAGE_NAME}:src-${CI_COMMIT_SHA} poetry run coverage report
-    - docker run -u `id -u`:`id -g` -v `pwd`/reports:/src/reports -e NOVA_GALAXY_TEST_GALAXY_KEY=${GALAXY_KEY} -e NOVA_GALAXY_TEST_GALAXY_URL=${GALAXY_URL}${IMAGE_NAME}:src-${CI_COMMIT_SHA} poetry run coverage xml -o reports/coverage.xml
+    - docker run -u `id -u`:`id -g` -v `pwd`/reports:/src/reports -e NOVA_GALAXY_TEST_GALAXY_KEY=${GALAXY_KEY} -e NOVA_GALAXY_TEST_GALAXY_URL=${GALAXY_URL} ${IMAGE_NAME}:src-${CI_COMMIT_SHA} poetry run coverage report
+    - docker run -u `id -u`:`id -g` -v `pwd`/reports:/src/reports -e NOVA_GALAXY_TEST_GALAXY_KEY=${GALAXY_KEY} -e NOVA_GALAXY_TEST_GALAXY_URL=${GALAXY_URL} ${IMAGE_NAME}:src-${CI_COMMIT_SHA} poetry run coverage xml -o reports/coverage.xml
     - sed -i "s:<source>/src:<source>${CI_BUILDS_DIR}/${CI_PROJECT_PATH}:" reports/coverage.xml
 
   coverage: '/TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
