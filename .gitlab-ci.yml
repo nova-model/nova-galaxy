@@ -8,6 +8,8 @@ variables:
   GIT_STRATEGY: clone
   IMAGE_NAME: ${NDIP_DOCKER_REPOSITORY}/${CI_PROJECT_PATH}
   IMAGE_TAG: "0.1.0"
+  GALAXY_URL: "https://calvera-test.ornl.gov"
+  GALAXY_KEY: ${SERVICE_ACCOUNT_API_KEY}
 
 before_script:
   - curl https://code.ornl.gov/rse-deployment/rse-sharables/raw/master/rse-bash-modules.sh -O
@@ -36,9 +38,9 @@ unit-tests:
   stage: test
   script:
     - mkdir reports
-    - docker run -u `id -u`:`id -g` -v `pwd`/reports:/src/reports ${IMAGE_NAME}:src-${CI_COMMIT_SHA} poetry run coverage run
-    - docker run -u `id -u`:`id -g` -v `pwd`/reports:/src/reports ${IMAGE_NAME}:src-${CI_COMMIT_SHA} poetry run coverage report
-    - docker run -u `id -u`:`id -g` -v `pwd`/reports:/src/reports ${IMAGE_NAME}:src-${CI_COMMIT_SHA} poetry run coverage xml -o reports/coverage.xml
+    - docker run -u `id -u`:`id -g` -v `pwd`/reports:/src/reports -e NOVA_GALAXY_TEST_GALAXY_KEY=${GALAXY_KEY} -e NOVA_GALAXY_TEST_GALAXY_URL=${GALAXY_URL} ${IMAGE_NAME}:src-${CI_COMMIT_SHA} poetry run coverage run
+    - docker run -u `id -u`:`id -g` -v `pwd`/reports:/src/reports -e NOVA_GALAXY_TEST_GALAXY_KEY=${GALAXY_KEY} -e NOVA_GALAXY_TEST_GALAXY_URL=${GALAXY_URL}${IMAGE_NAME}:src-${CI_COMMIT_SHA} poetry run coverage report
+    - docker run -u `id -u`:`id -g` -v `pwd`/reports:/src/reports -e NOVA_GALAXY_TEST_GALAXY_KEY=${GALAXY_KEY} -e NOVA_GALAXY_TEST_GALAXY_URL=${GALAXY_URL}${IMAGE_NAME}:src-${CI_COMMIT_SHA} poetry run coverage xml -o reports/coverage.xml
     - sed -i "s:<source>/src:<source>${CI_BUILDS_DIR}/${CI_PROJECT_PATH}:" reports/coverage.xml
 
   coverage: '/TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
