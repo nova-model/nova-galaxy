@@ -5,6 +5,10 @@
 
 This is the repository for the nova-galaxy project. This project creates a python package that makes it easier to work with the ORNL Galaxy instance.
 
+## Documentation
+
+A user guide, examples, and a full API for this package can be found at https://nova-galaxy.readthedocs.io/en/stable/.
+
 ## Installation
 You can install this package directly with
 
