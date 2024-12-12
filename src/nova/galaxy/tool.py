@@ -1,7 +1,7 @@
 """Contains classes to run tools in Galaxy via Nova."""
 
 import time
-from typing import List, Union
+from typing import List, Optional, Union
 
 from bioblend import galaxy
 
@@ -77,7 +77,9 @@ class Tool(AbstractWork):
 
         return outputs
 
-    def run_interactive(self, data_store: Datastore, params: Parameters, max_tries: int = 100) -> str:
+    def run_interactive(
+        self, data_store: Datastore, params: Parameters, max_tries: int = 100, check_url: bool = True
+    ) -> Optional[str]:
         galaxy_instance = data_store.nova_connection.galaxy_instance
         datasets_to_upload = {}
         # Set Tool Inputs
@@ -107,7 +109,7 @@ class Tool(AbstractWork):
                 if ep["job_id"] == job_id and ep.get("target", None):
                     url = f"{data_store.nova_connection.galaxy_url}{ep['target']}"
                     response = galaxy_instance.make_get_request(url)
-                    if response.status_code == 200:
+                    if response.status_code == 200 or not check_url:
                         return url
             timer -= 1
             time.sleep(1)

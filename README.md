@@ -32,10 +32,14 @@ poetry run mypy .
 ```
 
 ## Testing
+You can run the tests for this package with the following command from the base directory:
 ```commandline
-poetry run pytest
+NOVA_GALAXY_TEST_GALAXY_URL=galaxy-url NOVA_GALAXY_TEST_GALAXY_KEY=key poetry run pytest tests/
 ```
-or, with coverage
+with `NOVA_GALAXY_TEST_GALAXY_URL` being the url of your Galaxy instance and `NOVA_GALAXY_TEST_GALAXY_KEY` being your
+Galaxy API Key.
+
+To run tests with coverage (include the above environment variables):
 ```commandline
 poetry run coverage run
 poetry run coverage report
