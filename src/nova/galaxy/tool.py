@@ -1,6 +1,7 @@
 """Contains classes to run tools in Galaxy via Nova."""
 
 import time
+from enum import Enum
 from typing import List, Optional, Union
 
 from bioblend import galaxy
@@ -9,6 +10,16 @@ from .data_store import Datastore
 from .dataset import AbstractData, Dataset, DatasetCollection, upload_datasets
 from .outputs import Outputs
 from .parameters import Parameters
+
+
+class WorkState(Enum):
+    """The state of a dataset in Galaxy."""
+
+    NOT_STARTED = 1
+    QUEUED = 2
+    RUNNING = 3
+    FINISHED = 4
+    ERROR = 5
 
 
 class AbstractWork:
