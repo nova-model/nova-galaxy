@@ -9,6 +9,7 @@ from .tool import AbstractWork
 
 class Job:
     def __init__(self, work: AbstractWork):
+        self.id = ""
         pass
 
     def submit_job(self, datastore: Datastore, params: Parameters) -> None:
@@ -17,7 +18,7 @@ class Job:
     def cancel_job(self) -> None:
         pass
 
-    def wait_for_job(self) -> None:
+    def wait_for_results(self) -> None:
         pass
 
     def get_state(self) -> None:

@@ -17,6 +17,7 @@ class WorkState(Enum):
 
     NOT_STARTED = 1
     QUEUED = 2
+    UPLOADING_DATA = 6
     RUNNING = 3
     FINISHED = 4
     ERROR = 5
@@ -43,9 +44,16 @@ class Tool(AbstractWork):
 
     def __init__(self, id: str):
         super().__init__(id)
+        self._job = None
 
-    def run(self, data_store: Datastore, params: Parameters) -> Outputs:
+    def run_async(self, data_store: Datastore, params: Parameters, async_execution: bool):
+        # self.thread  = threading.new_thread(run)
+
+        pass
+
+    def run(self, data_store: Datastore, params: Parameters, async_execution: bool) -> Outputs:
         """Runs this tool in a blocking manner and returns a map of the output datasets and collections."""
+        # TODO Most of this logic will be moved to job class
         outputs = Outputs()
         galaxy_instance = data_store.nova_connection.galaxy_instance
         datasets_to_upload = {}
@@ -57,7 +65,8 @@ class Tool(AbstractWork):
                 datasets_to_upload[param] = val
             else:
                 tool_inputs.set_param(param, val)
-
+        self.state = get_state()
+        self._job.submit()
         ids = upload_datasets(store=data_store, datasets=datasets_to_upload)
         for param, val in ids.items():
             tool_inputs.set_dataset_param(param, val)
@@ -130,6 +139,21 @@ class Tool(AbstractWork):
             raise Exception("Unable to fetch the URL for interactive tool.")
         else:
             raise Exception("Interactive tool was stopped unexpectedly.")
+
+    def get_status(self):
+        return self._job.get_status()
+
+    def get_results(self):
+        pass
+
+    def stop(self):
+        pass
+
+    def cancel(self):
+        pass
+
+    def get_stdout(self):
+        pass
 
 
 def stop_all_tools_in_store(data_store: Datastore) -> None:
