@@ -1,5 +1,7 @@
 """Tests for tools."""
 
+import time
+
 from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.datasets import DatasetClient
 
@@ -7,6 +9,7 @@ from nova.galaxy.dataset import Dataset
 from nova.galaxy.nova import Nova
 from nova.galaxy.parameters import Parameters
 from nova.galaxy.tool import Tool
+from nova.galaxy.util import WorkState
 
 TEST_TOOL_ID = "neutrons_remote_command"
 TEST_INT_TOOL_ID = "interactive_tool_generic_output"
@@ -53,3 +56,43 @@ def test_run_tool_interactive(nova_instance: Nova, galaxy_instance: GalaxyInstan
                     assert test_text == "this is a test"
                     return
         raise Exception("Did not find interactive tool while testing.")
+
+
+def test_status(nova_instance: Nova) -> None:
+    with nova_instance.connect() as connection:
+        store = connection.create_data_store(name="nova_galaxy_testing")
+        test_tool = Tool(TEST_INT_TOOL_ID)
+        params = Parameters()
+        state = test_tool.get_status()
+        assert state == WorkState.NOT_STARTED
+        test_tool.run_interactive(data_store=store, params=params, check_url=False)
+        state = test_tool.get_status()
+        assert state == WorkState.RUNNING
+        test_tool.stop()
+        state = test_tool.get_status()
+        assert state == WorkState.FINISHED
+
+
+def test_cancel_tool(nova_instance: Nova) -> None:
+    with nova_instance.connect() as connection:
+        store = connection.create_data_store(name="nova_galaxy_testing")
+        test_tool = Tool(TEST_INT_TOOL_ID)
+        params = Parameters()
+        test_tool.run_interactive(data_store=store, params=params, check_url=False)
+        test_tool.cancel()
+        state = test_tool.get_status()
+        assert state == WorkState.ERROR
+
+
+def test_get_tool_stdout(nova_instance: Nova) -> None:
+    with nova_instance.connect() as connection:
+        store = connection.create_data_store(name="nova_galaxy_testing")
+        test_tool = Tool(TEST_INT_TOOL_ID)
+        params = Parameters()
+        test_tool.run_interactive(data_store=store, params=params, check_url=False)
+        state = test_tool.get_status()
+        assert state == WorkState.RUNNING
+        time.sleep(10)  # Tool takes a moment to produce stdout
+        stdout = test_tool.get_stdout()
+        assert stdout is not None
+        test_tool.cancel()

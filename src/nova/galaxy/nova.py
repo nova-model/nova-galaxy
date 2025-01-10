@@ -51,9 +51,6 @@ class NovaConnection:
         history = self.galaxy_instance.histories.get_histories(name=store.name)[0]["id"]
         self.galaxy_instance.histories.delete_history(history_id=history, purge=True)
 
-    def get_status(self, tool):
-        pass
-
 
 class Nova:
     """
