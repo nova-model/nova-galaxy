@@ -34,6 +34,7 @@ class Job:
         self.store = data_store
         self.galaxy_instance = self.store.nova_connection.galaxy_instance
         self.status = JobStatus()
+        self.url: Optional[str] = None
 
     def _run_and_wait(self, params: Parameters) -> None:
         """Runs tools and waits for result."""
@@ -41,6 +42,7 @@ class Job:
         try:
             self.wait_for_results()
         except Exception:
+            self.url = None
             self.status.state = WorkState.ERROR
 
         self.status.state = WorkState.FINISHED
@@ -64,25 +66,12 @@ class Job:
         self.run(params, False)
         if not wait:
             return None
-        timer = max_tries
-        while timer > 0:
-            try:
-                entry_points = self.galaxy_instance.make_get_request(
-                    f"{self.store.nova_connection.galaxy_url}/api/entry_points?job_id={self.id}"
-                )
-                for ep in entry_points.json():
-                    if ep["job_id"] == self.id and ep.get("target", None):
-                        url = f"{self.store.nova_connection.galaxy_url}{ep['target']}"
-                        response = self.galaxy_instance.make_get_request(url)
-                        if response.status_code == 200 or not check_url:
-                            return url
-            except Exception:
-                continue
-            finally:
-                timer -= 1
-                time.sleep(1)
+        successful_url = self.get_url(max_tries=max_tries, check_url=check_url)
+        if successful_url:
+            return successful_url
+        # If successful_url is None, then there was an issue starting the interactive tool.
         status = self.cancel()
-        # if status is false, the job has been in a terminal state already, indicating an error somewhere in execution
+        # if status is false, the job has been in a terminal state already, indicating an error somewhere in execution.
         if status:
             raise Exception("Unable to fetch the URL for interactive tool.")
         else:
@@ -91,6 +80,7 @@ class Job:
     def submit(self, params: Parameters) -> None:
         """Handles uploading inputs and submitting job."""
         self.status.state = WorkState.UPLOADING_DATA
+        self.url = None
         datasets_to_upload = {}
 
         # Set Tool Inputs
@@ -115,6 +105,7 @@ class Job:
 
     def cancel(self, check_results: bool = False) -> bool:
         """Cancels or stops a job in Galaxy."""
+        self.url = None
         if check_results:
             response = self.galaxy_instance.make_get_request(
                 f"{self.store.nova_connection.galaxy_url}/api/jobs{self.id}/finish"
@@ -161,6 +152,30 @@ class Job:
             return outputs
         else:
             raise Exception(f"Job {self.id} has not finished running.")
+
+    def get_url(self, max_tries: int = 100, check_url: bool = True) -> Optional[str]:
+        """Get the URL or endpoint for this tool."""
+        if self.url:
+            return self.url
+        timer = max_tries
+        while timer > 0:
+            try:
+                entry_points = self.galaxy_instance.make_get_request(
+                    f"{self.store.nova_connection.galaxy_url}/api/entry_points?job_id={self.id}"
+                )
+                for ep in entry_points.json():
+                    if ep["job_id"] == self.id and ep.get("target", None):
+                        url = f"{self.store.nova_connection.galaxy_url}{ep['target']}"
+                        self.url = url
+                        response = self.galaxy_instance.make_get_request(url)
+                        if response.status_code == 200 or not check_url:
+                            return url
+            except Exception:
+                continue
+            finally:
+                timer -= 1
+                time.sleep(1)
+        return None
 
     def get_console_output(self) -> Dict[str, str]:
         """Get all the current console output."""

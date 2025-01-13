@@ -134,6 +134,12 @@ class Tool(AbstractWork):
             return self._job.get_console_output()["stderr"]
         return None
 
+    def get_url(self) -> Optional[str]:
+        """Get the URL for this tool. If this is an interactive tool, then will return the endpoint to the tool."""
+        if self._job:
+            return self._job.get_url()
+        return None
+
 
 def stop_all_tools_in_store(data_store: Datastore) -> None:
     """Stops all the tools from running in a particular store."""

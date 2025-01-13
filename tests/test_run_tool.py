@@ -36,6 +36,7 @@ def test_run_tool_interactive(nova_instance: Nova, galaxy_instance: GalaxyInstan
         params.add_input("run_it", True)
         link = test_tool.run_interactive(data_store=store, params=params, check_url=False)
         assert link is not None
+        assert test_tool.get_url() is not None
         entry_points = galaxy_instance.make_get_request(
             f"{store.nova_connection.galaxy_url}/api/entry_points?running=true"
         )
