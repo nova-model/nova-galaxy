@@ -73,7 +73,10 @@ class Job:
         status = self.cancel()
         # if status is false, the job has been in a terminal state already, indicating an error somewhere in execution.
         if status:
-            raise Exception("Unable to fetch the URL for interactive tool.")
+            raise Exception(
+                "Unable to fetch the URL for interactive tool. This could be due to needing to pull the docker image. "
+                "Try again with a larger 'max_tries' value."
+            )
         else:
             raise Exception("Interactive tool was stopped unexpectedly.")
 
