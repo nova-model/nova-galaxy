@@ -1,5 +1,7 @@
 """Tests for data stores."""
 
+from typing import Optional
+
 from bioblend.galaxy import GalaxyInstance
 
 from nova.galaxy.nova import Nova
@@ -30,8 +32,8 @@ def test_persist_store(nova_instance: Nova, galaxy_instance: GalaxyInstance) -> 
     galaxy_instance.histories.delete_history(history_id=history[0]["id"], purge=True)
 
 
-def test_recover_tools(nova_instance: Nova):
-    first_id = ""
+def test_recover_tools(nova_instance: Nova) -> None:
+    first_id: Optional[str] = ""
     with nova_instance.connect() as connection:
         store = connection.create_data_store(name="nova_galaxy_testing")
         store.persist()
