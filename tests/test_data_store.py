@@ -3,6 +3,10 @@
 from bioblend.galaxy import GalaxyInstance
 
 from nova.galaxy.nova import Nova
+from nova.galaxy.tool import Tool
+from nova.galaxy.util import WorkState
+
+TEST_INT_TOOL_ID = "interactive_tool_generic_output"
 
 
 def test_no_persist_store(nova_instance: Nova, galaxy_instance: GalaxyInstance) -> None:
@@ -24,3 +28,21 @@ def test_persist_store(nova_instance: Nova, galaxy_instance: GalaxyInstance) -> 
     assert len(history) > 0
     # TODO: Can maybe do global cleanup
     galaxy_instance.histories.delete_history(history_id=history[0]["id"], purge=True)
+
+
+def test_recover_tools(nova_instance: Nova):
+    first_id = ""
+    with nova_instance.connect() as connection:
+        store = connection.create_data_store(name="nova_galaxy_testing")
+        store.persist()
+        test_tool = Tool(TEST_INT_TOOL_ID)
+        test_tool.run_interactive(data_store=store)
+        first_id = test_tool.get_uid()
+
+    with nova_instance.connect() as connection:
+        store = connection.create_data_store(name="nova_galaxy_testing")
+        tools = store.recover_tools()
+        assert len(tools) > 0
+        assert tools[0].get_url() is not None
+        assert tools[0].get_status() == WorkState.RUNNING
+        assert first_id == tools[0].get_uid()

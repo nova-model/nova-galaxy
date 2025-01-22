@@ -1,8 +1,10 @@
 """Contains classes to run tools in Galaxy via Nova."""
 
-from typing import List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
-from .data_store import Datastore
+if TYPE_CHECKING:
+    from .data_store import Datastore  # Only imports for type checking
+
 from .dataset import AbstractData
 from .job import Job
 from .outputs import Outputs
@@ -22,7 +24,7 @@ class AbstractWork:
     def get_inputs(self) -> List[Parameters]:
         return []
 
-    def run(self, data_store: Datastore, params: Parameters, wait: bool) -> Union[Outputs, None]:
+    def run(self, data_store: "Datastore", params: Parameters, wait: bool) -> Union[Outputs, None]:
         return None
 
 
@@ -38,7 +40,7 @@ class Tool(AbstractWork):
         super().__init__(id)
         self._job: Optional[Job] = None
 
-    def run(self, data_store: Datastore, params: Parameters, wait: bool = True) -> Optional[Outputs]:
+    def run(self, data_store: "Datastore", params: Optional[Parameters] = None, wait: bool = True) -> Optional[Outputs]:
         """Run this tool.
 
         By default, will be run in a blocking manner, unless `wait` is set to False. Will return the
@@ -64,7 +66,12 @@ class Tool(AbstractWork):
         return self._job.run(params, wait)
 
     def run_interactive(
-        self, data_store: Datastore, params: Parameters, wait: bool = True, max_tries: int = 100, check_url: bool = True
+        self,
+        data_store: "Datastore",
+        params: Optional[Parameters] = None,
+        wait: bool = True,
+        max_tries: int = 100,
+        check_url: bool = True,
     ) -> Optional[str]:
         """Run tool interactively.
 
@@ -140,8 +147,21 @@ class Tool(AbstractWork):
             return self._job.get_url()
         return None
 
+    def get_uid(self) -> Optional[str]:
+        """Get the unique ID for this tool. Will only be available if Tool.run() has been successfully invoked."""
+        if self._job:
+            return self._job.id
+        return None
 
-def stop_all_tools_in_store(data_store: Datastore) -> None:
+    def assign_id(self, new_id: str, data_store: "Datastore") -> None:
+        if self._job:
+            raise Exception("Tool cannot be currently assigned an ID. Do not directly call this method.")
+        self._job = Job(self.id, data_store)
+        self._job.id = new_id
+        self._job.status.state = WorkState.QUEUED
+
+
+def stop_all_tools_in_store(data_store: "Datastore") -> None:
     """Stops all the tools from running in a particular store."""
     galaxy_instance = data_store.nova_connection.galaxy_instance
     jobs = galaxy_instance.jobs.get_jobs(history_id=data_store.history_id)
