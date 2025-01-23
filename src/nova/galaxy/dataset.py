@@ -7,12 +7,13 @@ as well as output data from Galaxy tools.
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 from bioblend.galaxy.dataset_collections import DatasetCollectionClient
 from bioblend.galaxy.datasets import DatasetClient
 
-from .data_store import Datastore
+if TYPE_CHECKING:
+    from .data_store import Datastore
 
 
 class DataState(Enum):
@@ -46,10 +47,10 @@ class AbstractData(ABC):
         super().__init__()
         self.path: str = ""
         self.id: Union[str, None] = ""
-        self.store: Union[None, Datastore] = None
+        self.store: Union[None, "Datastore"] = None
 
     @abstractmethod
-    def upload(self, store: Datastore) -> None:
+    def upload(self, store: "Datastore") -> None:
         raise NotImplementedError()
 
     @abstractmethod
@@ -71,9 +72,9 @@ class Dataset(AbstractData):
         self.path = path
         self.name = name or Path(path).name
         self.id: str
-        self.store: Datastore
+        self.store: "Datastore"
 
-    def upload(self, store: Datastore) -> None:
+    def upload(self, store: "Datastore") -> None:
         galaxy_instance = store.nova_connection.galaxy_instance
         dataset_client = DatasetClient(galaxy_instance)
         history_id = galaxy_instance.histories.get_histories(name=store.name)[0]["id"]
@@ -106,9 +107,9 @@ class DatasetCollection(AbstractData):
         self.path = path
         self.name = name or Path(path).name
         self.id: str
-        self.store: Datastore
+        self.store: "Datastore"
 
-    def upload(self, store: Datastore) -> None:
+    def upload(self, store: "Datastore") -> None:
         """Will need to handle this differently than single datasets."""
         raise NotImplementedError
 
@@ -133,7 +134,7 @@ class DatasetCollection(AbstractData):
             raise Exception("Dataset collection is not present in Galaxy.")
 
 
-def upload_datasets(store: Datastore, datasets: Dict[str, AbstractData]) -> Dict[str, str]:
+def upload_datasets(store: "Datastore", datasets: Dict[str, AbstractData]) -> Dict[str, str]:
     """Helper method to upload multiple datasets or collections in parallel."""
     galaxy_instance = store.nova_connection.galaxy_instance
     dataset_client = DatasetClient(galaxy_instance)

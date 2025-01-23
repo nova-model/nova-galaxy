@@ -3,11 +3,12 @@
 import sys
 import time
 from threading import Thread
-from typing import Dict, Optional
+from typing import TYPE_CHECKING, Dict, Optional
 
 from bioblend import galaxy
 
-from .data_store import Datastore
+if TYPE_CHECKING:
+    from .data_store import Datastore
 from .dataset import AbstractData, Dataset, DatasetCollection, upload_datasets
 from .outputs import Outputs
 from .parameters import Parameters
@@ -26,7 +27,7 @@ class JobStatus:
 class Job:
     """Internal class managing Galaxy job execution. Should not be used by end users."""
 
-    def __init__(self, tool_id: str, data_store: Datastore) -> None:
+    def __init__(self, tool_id: str, data_store: "Datastore") -> None:
         self.id = ""
         self.datasets = None
         self.collections = None
@@ -36,7 +37,7 @@ class Job:
         self.status = JobStatus()
         self.url: Optional[str] = None
 
-    def _run_and_wait(self, params: Parameters) -> None:
+    def _run_and_wait(self, params: Optional[Parameters]) -> None:
         """Runs tools and waits for result."""
         self.submit(params)
         try:
@@ -47,7 +48,7 @@ class Job:
 
         self.status.state = WorkState.FINISHED
 
-    def run(self, params: Parameters, wait: bool) -> Optional[Outputs]:
+    def run(self, params: Optional[Parameters], wait: bool) -> Optional[Outputs]:
         """Runs a job in Galaxy."""
         if self.status.state in [WorkState.NOT_STARTED, WorkState.FINISHED, WorkState.ERROR]:
             thread = Thread(target=self._run_and_wait, args=(params,))
@@ -60,7 +61,7 @@ class Job:
             raise Exception(f"Tool {self.tool} (id: {self.id}) is already running.")
 
     def run_interactive(
-        self, params: Parameters, wait: bool, max_tries: int = 100, check_url: bool = True
+        self, params: Optional[Parameters], wait: bool, max_tries: int = 100, check_url: bool = True
     ) -> Optional[str]:
         """Runs an interactive tool in Galaxy and returns a link to the tool."""
         self.run(params, False)
@@ -80,7 +81,7 @@ class Job:
         else:
             raise Exception("Interactive tool was stopped unexpectedly.")
 
-    def submit(self, params: Parameters) -> None:
+    def submit(self, params: Optional[Parameters]) -> None:
         """Handles uploading inputs and submitting job."""
         self.status.state = WorkState.UPLOADING_DATA
         self.url = None
@@ -88,14 +89,15 @@ class Job:
 
         # Set Tool Inputs
         tool_inputs = galaxy.tools.inputs.inputs()
-        for param, val in params.inputs.items():
-            if isinstance(val, AbstractData):
-                datasets_to_upload[param] = val
-            else:
-                tool_inputs.set_param(param, val)
-        ids = upload_datasets(store=self.store, datasets=datasets_to_upload)
-        for param, val in ids.items():
-            tool_inputs.set_dataset_param(param, val)
+        if params:
+            for param, val in params.inputs.items():
+                if isinstance(val, AbstractData):
+                    datasets_to_upload[param] = val
+                else:
+                    tool_inputs.set_param(param, val)
+            ids = upload_datasets(store=self.store, datasets=datasets_to_upload)
+            for param, val in ids.items():
+                tool_inputs.set_dataset_param(param, val)
 
         # Run tool and wait for job to finish
         self.status.state = WorkState.QUEUED
