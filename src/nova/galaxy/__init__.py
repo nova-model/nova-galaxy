@@ -6,6 +6,7 @@ from .nova import Nova, NovaConnection
 from .outputs import Outputs
 from .parameters import Parameters
 from .tool import Tool
+from .util import WorkState
 
 __all__ = [
     "Nova",
@@ -17,6 +18,7 @@ __all__ = [
     "Outputs",
     "Parameters",
     "Tool",
+    "WorkState",
 ]
 
 __version__ = importlib.metadata.version("nova-galaxy")

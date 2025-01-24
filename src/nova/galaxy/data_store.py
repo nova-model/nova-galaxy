@@ -39,11 +39,12 @@ class Datastore:
         )
         tools = []
         for dataset in history_contents:
-            job_id = dataset["creating_job"]
-            tool_id = self.nova_connection.galaxy_instance.jobs.show_job(job_id)["tool_id"]
-            t = Tool(tool_id)
-            t.assign_id(job_id, self)
-            t.get_url()
-            t.get_status()
-            tools.append(t)
+            job_id = dataset.get("creating_job", None)
+            if job_id:
+                tool_id = self.nova_connection.galaxy_instance.jobs.show_job(job_id)["tool_id"]
+                t = Tool(tool_id)
+                t.assign_id(job_id, self)
+                t.get_url()
+                t.get_status()
+                tools.append(t)
         return tools
