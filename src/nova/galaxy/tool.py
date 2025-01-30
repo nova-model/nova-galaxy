@@ -1,4 +1,4 @@
-"""Contains classes to run tools in Galaxy via Nova."""
+"""Contains classes to run tools in Galaxy via Connection."""
 
 from typing import TYPE_CHECKING, List, Optional, Union
 

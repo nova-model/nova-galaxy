@@ -3,7 +3,7 @@
 from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
-    from .nova import NovaConnection  # Only imports for type checking
+    from .connection import ConnectionHelper  # Only imports for type checking
 
 from .tool import Tool
 
@@ -11,10 +11,10 @@ from .tool import Tool
 class Datastore:
     """Groups tool outputs together.
 
-    The constructor is not intended for external use. Use nova.galaxy.Nova.create_data_store() instead.
+    The constructor is not intended for external use. Use nova.galaxy.Connection.create_data_store() instead.
     """
 
-    def __init__(self, name: str, nova_connection: "NovaConnection", history_id: str) -> None:
+    def __init__(self, name: str, nova_connection: "ConnectionHelper", history_id: str) -> None:
         self.name = name
         self.nova_connection = nova_connection
         self.history_id = history_id

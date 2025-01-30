@@ -4,14 +4,14 @@ from typing import Optional
 
 from bioblend.galaxy import GalaxyInstance
 
-from nova.galaxy.nova import Nova
+from nova.galaxy.connection import Connection
 from nova.galaxy.tool import Tool
 from nova.galaxy.util import WorkState
 
 TEST_INT_TOOL_ID = "interactive_tool_generic_output"
 
 
-def test_no_persist_store(nova_instance: Nova, galaxy_instance: GalaxyInstance) -> None:
+def test_no_persist_store(nova_instance: Connection, galaxy_instance: GalaxyInstance) -> None:
     with nova_instance.connect() as connection:
         store = connection.create_data_store(name="nova_galaxy_testing")
         history = galaxy_instance.histories.get_histories(name=store.name)
@@ -20,7 +20,7 @@ def test_no_persist_store(nova_instance: Nova, galaxy_instance: GalaxyInstance) 
     assert len(history) < 1
 
 
-def test_persist_store(nova_instance: Nova, galaxy_instance: GalaxyInstance) -> None:
+def test_persist_store(nova_instance: Connection, galaxy_instance: GalaxyInstance) -> None:
     with nova_instance.connect() as connection:
         store = connection.create_data_store(name="nova_galaxy_testing")
         store.persist()
@@ -32,7 +32,7 @@ def test_persist_store(nova_instance: Nova, galaxy_instance: GalaxyInstance) -> 
     galaxy_instance.histories.delete_history(history_id=history[0]["id"], purge=True)
 
 
-def test_recover_tools(nova_instance: Nova) -> None:
+def test_recover_tools(nova_instance: Connection) -> None:
     first_id: Optional[str] = ""
     with nova_instance.connect() as connection:
         store = connection.create_data_store(name="nova_galaxy_testing")

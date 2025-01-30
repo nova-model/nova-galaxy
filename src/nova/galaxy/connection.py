@@ -22,10 +22,10 @@ class GalaxyConnectionError(Exception):
         super().__init__(self.message)
 
 
-class NovaConnection:
+class ConnectionHelper:
     """Manages datastore for current connection.
 
-    Should not be instantiated manually. Use Nova.connect() instead. Any stores created using the connection will
+    Should not be instantiated manually. Use Connection.connect() instead. Any stores created using the connection will
     be automatically purged after connection is closed, unless Datastore.persist() is called for that store.
     """
 
@@ -52,9 +52,9 @@ class NovaConnection:
         self.galaxy_instance.histories.delete_history(history_id=history, purge=True)
 
 
-class Nova:
+class Connection:
     """
-    Class to manage a Galaxy connection.
+    Class to manage a connection to the NDIP platform.
 
     Attributes
     ----------
@@ -68,7 +68,7 @@ class Nova:
         galaxy_key: Optional[str] = None,
     ) -> None:
         """
-        Initializes the Nova instance with the provided URL and API key.
+        Initializes the Connection instance with the provided URL and API key.
 
         Args:
             galaxy_url (Optional[str]): URL of the Galaxy instance.
@@ -95,7 +95,7 @@ class Nova:
             raise ValueError("Galaxy URL must be a string")
         self.galaxy_instance = galaxy.GalaxyInstance(url=self.galaxy_url, key=self.galaxy_api_key)
         self.galaxy_instance.config.get_version()
-        conn = NovaConnection(self.galaxy_instance, self.galaxy_url)
+        conn = ConnectionHelper(self.galaxy_instance, self.galaxy_url)
         yield conn
         # Remove all data stores after execution
         for store in conn.datastores:
