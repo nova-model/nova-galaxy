@@ -102,7 +102,14 @@ class Tool(AbstractWork):
         return self._job.run_interactive(params, wait=wait, max_tries=max_tries, check_url=check_url)
 
     def get_status(self) -> WorkState:
-        """Returns the current status of the tool."""
+        """Returns the current status of the tool.
+
+        Returns
+        -------
+        WorkState
+           Returns the status of the tool which will be one of the following values: not_started, uploading, queued,
+           running, finished, error
+        """
         if self._job:
             return self._job.get_state().state
         else:
@@ -114,6 +121,10 @@ class Tool(AbstractWork):
         Throws an Exception if the tool has not finished yet. Will be
         overridden if this tool is run again.
 
+        Returns
+        -------
+        Optional[Outputs]
+          An instance of Outputs that holds the datasets and collections from this tool execution if it is finished.
         """
         if self._job:
             return self._job.get_results()
@@ -130,30 +141,75 @@ class Tool(AbstractWork):
             self._job.cancel(check_results=False)
 
     def get_stdout(self) -> Optional[str]:
-        """Get the current STDOUT for a tool. Will be overridden everytime this tool is run."""
+        """Get the current STDOUT for a tool.
+
+        Will be overridden everytime this tool is run.
+
+        Returns
+        -------
+        Optional[str]
+           Returns the current STDOUT of the tool if it is running or finished.
+        """
         if self._job:
             return self._job.get_console_output()["stdout"]
         return None
 
     def get_stderr(self) -> Optional[str]:
-        """Get the current STDERR for a tool. Will be overridden everytime this tool is run."""
+        """Get the current STDERR for a tool.
+
+        Will be overridden everytime this tool is run.
+
+        Returns
+        -------
+        Optional[str]
+           Returns the current STDERR of the tool if it is running or finished.
+        """
         if self._job:
             return self._job.get_console_output()["stderr"]
         return None
 
-    def get_url(self) -> Optional[str]:
-        """Get the URL for this tool. If this is an interactive tool, then will return the endpoint to the tool."""
+    def get_url(self, max_tries: int = 5) -> Optional[str]:
+        """Get the URL for this tool.
+
+        If this is an interactive tool, then will return the endpoint to the tool. The first call may need to query
+        Galaxy, but the url is cached for subsequent calls.
+
+        Parameters
+        ----------
+        max_tries: int
+            How many attempts to obtain the url.
+        """
         if self._job:
-            return self._job.get_url()
+            return self._job.get_url(max_tries=max_tries, check_url=False)
         return None
 
     def get_uid(self) -> Optional[str]:
-        """Get the unique ID for this tool. Will only be available if Tool.run() has been successfully invoked."""
+        """Get the unique ID for this tool.
+
+        Will only be available if Tool.run() has been successfully invoked.
+
+        Returns
+        -------
+        Optional[str]
+           Returns the uid of this tool if it is running or finished.
+        """
         if self._job:
             return self._job.id
         return None
 
     def assign_id(self, new_id: str, data_store: "Datastore") -> None:
+        """Assigns an id to this tool.
+
+        Assigns this tool a new id, so that it can track already existing tools. Useful for recovering old tools if
+        you have kept track of the id.
+
+        Parameters
+        ----------
+        new_id: str
+            The new id to assign to this tool.
+        data_store: Datastore
+            The datastore in which the tool should be tracked.
+        """
         if self._job:
             raise Exception("Tool cannot be currently assigned an ID. Do not directly call this method.")
         self._job = Job(self.id, data_store)
