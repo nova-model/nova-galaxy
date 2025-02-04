@@ -42,9 +42,11 @@ class Job:
         self.submit(params)
         try:
             self.wait_for_results()
-        except Exception:
+        except Exception as e:
             self.url = None
             self.status.state = WorkState.ERROR
+            self.status.error_msg = str(e)
+            return
 
         self.status.state = WorkState.FINISHED
 

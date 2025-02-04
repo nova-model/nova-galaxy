@@ -11,7 +11,7 @@ This example demonstrates how to run an interactive tool and retrieve its URL.
 
    galaxy_url = "your_galaxy_url"
    galaxy_key = "your_galaxy_api_key"
-   nova = Nova(galaxy_url, galaxy_key)
+   nova = Connection(galaxy_url, galaxy_key)
 
    with nova.connect() as conn:
        data_store = conn.create_data_store("Interactive Tool Example")

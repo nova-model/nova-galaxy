@@ -3,7 +3,7 @@
 from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
-    from .nova import NovaConnection  # Only imports for type checking
+    from .connection import ConnectionHelper  # Only imports for type checking
 
 from .tool import Tool
 
@@ -11,10 +11,10 @@ from .tool import Tool
 class Datastore:
     """Groups tool outputs together.
 
-    The constructor is not intended for external use. Use nova.galaxy.Nova.create_data_store() instead.
+    The constructor is not intended for external use. Use nova.galaxy.Connection.create_data_store() instead.
     """
 
-    def __init__(self, name: str, nova_connection: "NovaConnection", history_id: str) -> None:
+    def __init__(self, name: str, nova_connection: "ConnectionHelper", history_id: str) -> None:
         self.name = name
         self.nova_connection = nova_connection
         self.history_id = history_id
@@ -28,11 +28,20 @@ class Datastore:
         """
         self.persist_store = True
 
-    def recover_tools(self) -> List[Tool]:
+    def recover_tools(self, filter_running: bool = True) -> List[Tool]:
         """Recovers all running tools in this data_store.
 
         Mainly used to recover all the running tools inside of this data store or any past persisted data stores that
         used the same name. Can also be used to simply get a list of all running tools in a store as well.
+
+        Parameters
+        ----------
+        filter_running: bool
+            If this should only recover tools that are running (true).
+
+        Returns
+        -------
+            List of tools from this data store.
         """
         history_contents = self.nova_connection.galaxy_instance.histories.show_history(
             self.history_id, contents=True, deleted=False, details="all"
@@ -41,10 +50,11 @@ class Datastore:
         for dataset in history_contents:
             job_id = dataset.get("creating_job", None)
             if job_id:
-                tool_id = self.nova_connection.galaxy_instance.jobs.show_job(job_id)["tool_id"]
-                t = Tool(tool_id)
-                t.assign_id(job_id, self)
-                t.get_url()
-                t.get_status()
-                tools.append(t)
+                info = self.nova_connection.galaxy_instance.jobs.show_job(job_id)
+                if info["state"] == "running" or info["state"] == "queued" or not filter_running:
+                    tool_id = info["tool_id"]
+                    t = Tool(tool_id)
+                    t.assign_id(job_id, self)
+                    t.get_url(max_tries=1)
+                    tools.append(t)
         return tools

@@ -5,8 +5,8 @@ import time
 from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.datasets import DatasetClient
 
+from nova.galaxy.connection import Connection
 from nova.galaxy.dataset import Dataset
-from nova.galaxy.nova import Nova
 from nova.galaxy.parameters import Parameters
 from nova.galaxy.tool import Tool
 from nova.galaxy.util import WorkState
@@ -15,7 +15,7 @@ TEST_TOOL_ID = "neutrons_remote_command"
 TEST_INT_TOOL_ID = "interactive_tool_generic_output"
 
 
-def test_run_tool(nova_instance: Nova) -> None:
+def test_run_tool(nova_instance: Connection) -> None:
     with nova_instance.connect() as connection:
         store = connection.create_data_store(name="nova_galaxy_testing")
         test_tool = Tool(TEST_TOOL_ID)
@@ -25,7 +25,7 @@ def test_run_tool(nova_instance: Nova) -> None:
         assert "hostname:" in data.get_content()
 
 
-def test_run_tool_interactive(nova_instance: Nova, galaxy_instance: GalaxyInstance) -> None:
+def test_run_tool_interactive(nova_instance: Connection, galaxy_instance: GalaxyInstance) -> None:
     with nova_instance.connect() as connection:
         store = connection.create_data_store(name="nova_galaxy_testing")
         notebook = Dataset(path="tests/test_files/test_jupyter_notebook.ipynb")
@@ -59,7 +59,7 @@ def test_run_tool_interactive(nova_instance: Nova, galaxy_instance: GalaxyInstan
         raise Exception("Did not find interactive tool while testing.")
 
 
-def test_status(nova_instance: Nova) -> None:
+def test_status(nova_instance: Connection) -> None:
     with nova_instance.connect() as connection:
         store = connection.create_data_store(name="nova_galaxy_testing")
         test_tool = Tool(TEST_INT_TOOL_ID)
@@ -74,7 +74,7 @@ def test_status(nova_instance: Nova) -> None:
         assert state == WorkState.FINISHED
 
 
-def test_cancel_tool(nova_instance: Nova) -> None:
+def test_cancel_tool(nova_instance: Connection) -> None:
     with nova_instance.connect() as connection:
         store = connection.create_data_store(name="nova_galaxy_testing")
         test_tool = Tool(TEST_INT_TOOL_ID)
@@ -85,7 +85,7 @@ def test_cancel_tool(nova_instance: Nova) -> None:
         assert state == WorkState.ERROR
 
 
-def test_get_tool_stdout(nova_instance: Nova) -> None:
+def test_get_tool_stdout(nova_instance: Connection) -> None:
     with nova_instance.connect() as connection:
         store = connection.create_data_store(name="nova_galaxy_testing")
         test_tool = Tool(TEST_INT_TOOL_ID)

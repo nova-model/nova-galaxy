@@ -11,7 +11,7 @@ This example shows how to run a tool that takes multiple datasets as input.
 
    galaxy_url = "your_galaxy_url"
    galaxy_key = "your_galaxy_api_key"
-   nova = Nova(galaxy_url, galaxy_key)
+   nova = Connection(galaxy_url, galaxy_key)
 
    with nova.connect() as conn:
        data_store = conn.create_data_store("Multi-Input Example")

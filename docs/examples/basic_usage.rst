@@ -7,11 +7,11 @@ This example demonstrates how to upload a dataset to Galaxy and run a tool using
 
 .. code-block:: python
 
-   from nova.galaxy import Nova, Dataset, Tool, Parameters
+   from nova.galaxy import Connection, Dataset, Tool, Parameters
 
    galaxy_url = "your_galaxy_url"
    galaxy_key = "your_galaxy_api_key"
-   nova = Nova(galaxy_url, galaxy_key)
+   nova = Connection(galaxy_url, galaxy_key)
 
    with nova.connect() as conn:
        # Create a data store
