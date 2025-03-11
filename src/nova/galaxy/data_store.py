@@ -44,13 +44,16 @@ class Datastore:
             List of tools from this data store.
         """
         if filter_running:
-            states = ['running', 'queued']
+            states = ["running", "queued"]
         else:
-            states = ['running', 'queued', 'ok', 'error']
-        jobs = self.nova_connection.galaxy_instance.jobs.get_jobs(state=states, history_id=self.history_id)
+            states = ["running", "queued", "ok", "error"]
+        jobs = self.nova_connection.galaxy_instance.jobs.get_jobs(
+            state=states,  # type: ignore
+            history_id=self.history_id,
+        )
         tools = []
         for job in jobs:
-            job_id = job['id']
+            job_id = job["id"]
             tool_id = job["tool_id"]
             t = Tool(tool_id)
             t.assign_id(job_id, self)
