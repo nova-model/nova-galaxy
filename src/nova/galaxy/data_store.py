@@ -50,11 +50,10 @@ class Datastore:
         for dataset in history_contents:
             job_id = dataset.get("creating_job", None)
             if job_id:
-                info = self.nova_connection.galaxy_instance.jobs.show_job(job_id)
-                if info["state"] == "running" or info["state"] == "queued" or not filter_running:
+                if dataset.get("state", None) == "running" or dataset.get("state",None) == "queued" or not filter_running:
+                    info = self.nova_connection.galaxy_instance.jobs.show_job(job_id)
                     tool_id = info["tool_id"]
                     t = Tool(tool_id)
                     t.assign_id(job_id, self)
-                    t.get_url(max_tries=1)
                     tools.append(t)
         return tools
