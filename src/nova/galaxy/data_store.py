@@ -43,17 +43,16 @@ class Datastore:
         -------
             List of tools from this data store.
         """
-        history_contents = self.nova_connection.galaxy_instance.histories.show_history(
-            self.history_id, contents=True, deleted=False, details="all"
-        )
+        if filter_running:
+            states = ['running', 'queued']
+        else:
+            states = ['running', 'queued', 'ok', 'error']
+        jobs = self.nova_connection.galaxy_instance.jobs.get_jobs(state=states, history_id=self.history_id)
         tools = []
-        for dataset in history_contents:
-            job_id = dataset.get("creating_job", None)
-            if job_id:
-                if dataset.get("state", None) == "running" or dataset.get("state",None) == "queued" or not filter_running:
-                    info = self.nova_connection.galaxy_instance.jobs.show_job(job_id)
-                    tool_id = info["tool_id"]
-                    t = Tool(tool_id)
-                    t.assign_id(job_id, self)
-                    tools.append(t)
+        for job in jobs:
+            job_id = job['id']
+            tool_id = job["tool_id"]
+            t = Tool(tool_id)
+            t.assign_id(job_id, self)
+            tools.append(t)
         return tools
