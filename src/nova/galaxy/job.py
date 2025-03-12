@@ -137,6 +137,10 @@ class Job:
             job = self.galaxy_instance.jobs.show_job(self.id)
             if job["state"] == "running":
                 self.status.state = WorkState.RUNNING
+            elif job["state"] == "error":
+                self.status.state = WorkState.ERROR
+            elif job["state"] == "deleted":
+                self.status.state = WorkState.DELETED
         return self.status
 
     def get_results(self) -> Outputs:
