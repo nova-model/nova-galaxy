@@ -74,8 +74,8 @@ class Dataset(AbstractData):
     def __init__(self, path: str = "", name: Optional[str] = None):
         self.path = path
         self.name = name or Path(path).name
-        self.id: str
-        self.store: "Datastore"
+        self.id: str = ""
+        self.store: Optional["Datastore"] = None
         self.file_type: str = Path(path).suffix
         self._content: Any = None
 
