@@ -181,7 +181,7 @@ def upload_datasets(store: "Datastore", datasets: Dict[str, AbstractData]) -> Di
     history_id = galaxy_instance.histories.get_histories(name=store.name)[0]["id"]
     dataset_ids = {}
     for name, dataset in datasets.items():
-        if dataset.get_content():
+        if len(dataset.path) < 1 and dataset.get_content():
             dataset_info = galaxy_instance.tools.paste_content(
                 content=str(dataset.get_content()), history_id=history_id
             )
