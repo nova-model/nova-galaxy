@@ -66,19 +66,31 @@ class AbstractData(ABC):
 
 
 class Dataset(AbstractData):
-    """Singular file that can be uploaded and used in a Galaxy tool."""
+    """Singular file that can be uploaded and used in a Galaxy tool.
 
-    def __init__(self, path: str, name: Optional[str] = None):
+    If needing to change the path of the Dataset, it is recommended to create a new Dataset instead.
+    """
+
+    def __init__(self, path: str = "", name: Optional[str] = None):
         self.path = path
         self.name = name or Path(path).name
-        self.id: str
-        self.store: "Datastore"
+        self.id: str = ""
+        self.store: Optional["Datastore"] = None
+        self.file_type: str = Path(path).suffix
+        self._content: Any = None
 
     def upload(self, store: "Datastore") -> None:
+        """Uploads this dataset to the data store given.
+
+        This method will automatically set the id, and store class variables for future use.
+        """
         galaxy_instance = store.nova_connection.galaxy_instance
         dataset_client = DatasetClient(galaxy_instance)
         history_id = galaxy_instance.histories.get_histories(name=store.name)[0]["id"]
-        dataset_id = galaxy_instance.tools.upload_file(path=self.path, history_id=history_id)
+        if self._content:
+            dataset_id = galaxy_instance.tools.paste_content(content=self._content, history_id=history_id)
+        else:
+            dataset_id = galaxy_instance.tools.upload_file(path=self.path, history_id=history_id)
         self.id = dataset_id["outputs"][0]["id"]
         self.store = store
         dataset_client.wait_for_dataset(self.id)
@@ -92,12 +104,40 @@ class Dataset(AbstractData):
         else:
             raise Exception("Dataset is not present in Galaxy.")
 
+    def set_content(self, content: Any, file_type: str = "") -> None:
+        """Directly set the content of this dataset.
+
+        Use this method if instead of having a dataset load from a file, you want to directly pass in content.
+        Note, the content must be able to be serialized as a string in order to facilitate the uploading process.
+        """
+        try:
+            str(content)
+            self._content = content
+            self.file_type = file_type
+        except Exception as e:
+            raise Exception("Dataset content must be able to be serialized as a string.") from e
+
     def get_content(self) -> Any:
-        if self.store and self.id:
-            dataset_client = DatasetClient(self.store.nova_connection.galaxy_instance)
-            return dataset_client.download_dataset(self.id, use_default_filename=False, file_path=None).decode("utf-8")
-        else:
-            raise Exception("Dataset is not present in Galaxy.")
+        """Get the content of this dataset.
+
+        If the content is not already present in memory, this method will download and/or load the file content into
+        memory. If not careful, this can cause performance issues with large datasets. For larger files, consider
+        using the download() method and writing the file to a local path.
+        """
+        if self._content:
+            return self._content
+        try:
+            if self.store and self.id:
+                dataset_client = DatasetClient(self.store.nova_connection.galaxy_instance)
+                self._content = dataset_client.download_dataset(
+                    self.id, use_default_filename=False, file_path=None
+                ).decode("utf-8")
+            else:
+                with open(self.path, "r") as file:
+                    self._content = file.read()
+        except Exception as e:
+            raise Exception(f"Dataset is not present in Galaxy or locally. Error Details: {e}") from e
+        return self._content
 
 
 class DatasetCollection(AbstractData):
@@ -141,9 +181,14 @@ def upload_datasets(store: "Datastore", datasets: Dict[str, AbstractData]) -> Di
     history_id = galaxy_instance.histories.get_histories(name=store.name)[0]["id"]
     dataset_ids = {}
     for name, dataset in datasets.items():
-        dataset_id = galaxy_instance.tools.upload_file(path=dataset.path, history_id=history_id)
-        dataset_ids[name] = dataset_id["outputs"][0]["id"]
-        dataset.id = dataset_id["outputs"][0]["id"]
+        if len(dataset.path) < 1 and dataset.get_content():
+            dataset_info = galaxy_instance.tools.paste_content(
+                content=str(dataset.get_content()), history_id=history_id
+            )
+        else:
+            dataset_info = galaxy_instance.tools.upload_file(path=dataset.path, history_id=history_id)
+        dataset_ids[name] = dataset_info["outputs"][0]["id"]
+        dataset.id = dataset_info["outputs"][0]["id"]
         dataset.store = store
     for dataset_output in dataset_ids.values():
         dataset_client.wait_for_dataset(dataset_output)
