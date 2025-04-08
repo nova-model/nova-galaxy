@@ -168,7 +168,7 @@ class Tool(AbstractWork):
             return self._job.get_console_output()["stderr"]
         return None
 
-    def get_url(self, max_tries: int = 5) -> Optional[str]:
+    def get_url(self, max_tries: int = 5, check_url: bool = False) -> Optional[str]:
         """Get the URL for this tool.
 
         If this is an interactive tool, then will return the endpoint to the tool. The first call may need to query
@@ -178,9 +178,11 @@ class Tool(AbstractWork):
         ----------
         max_tries: int
             How many attempts to obtain the url.
+        check_url: bool
+            Whether to check the URL for a 200 response before returning. If the request is unsuccessful, returns None.
         """
         if self._job:
-            return self._job.get_url(max_tries=max_tries, check_url=False)
+            return self._job.get_url(max_tries=max_tries, check_url=check_url)
         return None
 
     def get_uid(self) -> Optional[str]:
