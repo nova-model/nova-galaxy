@@ -18,7 +18,7 @@ class Datastore:
         self.name = name
         self.nova_connection = nova_connection
         self.history_id = history_id
-        self.persist_store = False
+        self.persist_store = True
 
     def persist(self) -> None:
         """Persist this store even after the nova connection is closed.
@@ -27,6 +27,10 @@ class Datastore:
         Use recover_tools() to with the same data store name to retrieve all running tools again.
         """
         self.persist_store = True
+
+    def mark_for_cleanup(self) -> None:
+        """Clean up and delete all content related to this Data Store after the associated connection is closed."""
+        self.persist_store = False
 
     def recover_tools(self, filter_running: bool = True) -> List[Tool]:
         """Recovers all running tools in this data_store.
