@@ -163,13 +163,11 @@ class DatasetCollection(AbstractData):
             raise Exception("Dataset collection is not present in Galaxy.")
 
     def get_content(self) -> Any:
+        """Get a list of the content of this Collection along with info on each element."""
         if self.store and self.id:
             dataset_client = DatasetCollectionClient(self.store.nova_connection.galaxy_instance)
             info = dataset_client.show_dataset_collection(self.id)
-            output = ""
-            for element in info["elements"]:
-                output += f"{element['element_identifier']}\n"
-            return output
+            return info["elements"]
         else:
             raise Exception("Dataset collection is not present in Galaxy.")
 
