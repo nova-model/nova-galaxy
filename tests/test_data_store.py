@@ -14,6 +14,7 @@ TEST_INT_TOOL_ID = "interactive_tool_generic_output"
 def test_no_persist_store(nova_instance: Connection, galaxy_instance: GalaxyInstance) -> None:
     with nova_instance.connect() as connection:
         store = connection.create_data_store(name="nova_galaxy_testing")
+        store.mark_for_cleanup()
         history = galaxy_instance.histories.get_histories(name=store.name)
         assert len(history) > 0
     history = galaxy_instance.histories.get_histories(name=store.history_id, deleted=False)
@@ -43,6 +44,7 @@ def test_recover_tools(nova_instance: Connection) -> None:
 
     with nova_instance.connect() as connection:
         store = connection.create_data_store(name="nova_galaxy_testing")
+        store.mark_for_cleanup()
         tools = store.recover_tools()
         assert len(tools) > 0
         assert tools[0].get_url() is not None

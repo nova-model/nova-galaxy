@@ -18,6 +18,7 @@ TEST_INT_TOOL_ID = "interactive_tool_generic_output"
 def test_run_tool(nova_instance: Connection) -> None:
     with nova_instance.connect() as connection:
         store = connection.create_data_store(name="nova_galaxy_testing")
+        store.mark_for_cleanup()
         test_tool = Tool(TEST_TOOL_ID)
         outputs = test_tool.run(data_store=store, params=Parameters())
         assert outputs is not None
@@ -28,6 +29,7 @@ def test_run_tool(nova_instance: Connection) -> None:
 def test_run_tool_interactive(nova_instance: Connection, galaxy_instance: GalaxyInstance) -> None:
     with nova_instance.connect() as connection:
         store = connection.create_data_store(name="nova_galaxy_testing")
+        store.mark_for_cleanup()
         notebook = Dataset(path="tests/test_files/test_jupyter_notebook.ipynb")
         test_tool = Tool(TEST_INT_TOOL_ID)
         params = Parameters()
@@ -62,6 +64,7 @@ def test_run_tool_interactive(nova_instance: Connection, galaxy_instance: Galaxy
 def test_status(nova_instance: Connection) -> None:
     with nova_instance.connect() as connection:
         store = connection.create_data_store(name="nova_galaxy_testing")
+        store.mark_for_cleanup()
         test_tool = Tool(TEST_INT_TOOL_ID)
         params = Parameters()
         state = test_tool.get_status()
@@ -77,6 +80,7 @@ def test_status(nova_instance: Connection) -> None:
 def test_cancel_tool(nova_instance: Connection) -> None:
     with nova_instance.connect() as connection:
         store = connection.create_data_store(name="nova_galaxy_testing")
+        store.mark_for_cleanup()
         test_tool = Tool(TEST_INT_TOOL_ID)
         params = Parameters()
         test_tool.run_interactive(data_store=store, params=params, check_url=False)
@@ -88,6 +92,7 @@ def test_cancel_tool(nova_instance: Connection) -> None:
 def test_get_tool_stdout(nova_instance: Connection) -> None:
     with nova_instance.connect() as connection:
         store = connection.create_data_store(name="nova_galaxy_testing")
+        store.mark_for_cleanup()
         test_tool = Tool(TEST_INT_TOOL_ID)
         params = Parameters()
         test_tool.run_interactive(data_store=store, params=params, check_url=False)
