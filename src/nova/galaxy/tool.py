@@ -130,6 +130,16 @@ class Tool(AbstractWork):
             return self._job.get_results()
         return None
 
+    def wait_for_results(self, max_tries: int = 100) -> None:
+        if self._job:
+            timer = 0
+            while timer < max_tries:
+                try:
+                    self._job.wait_for_results()
+                    return
+                except Exception:
+                    timer += 1
+
     def stop(self) -> None:
         """Stop the tool, but keep any existing results."""
         if self._job:
