@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nova-galaxy"
-version = "0.7.4"
+version = "0.8.0"
 description = "Utilties for accessing the ORNL Galaxy instance"
 authors = ["Greg Watson <watsongr@ornl.gov>", "Gregory Cage <cagege@ornl.gov>"]
 readme = "README.md"
@@ -13,7 +13,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.10"
-bioblend = "^1.3.0"
+bioblend = "^1.5.0"
 tomli = "^2.0.2"
 
 [build-system]
