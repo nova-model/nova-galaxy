@@ -1,3 +1,25 @@
+### Nova Galaxy, 0.8.0
+- `use_data_store()` has been added to the ConnectionHelper class. This functionally does the same thing as create_data_store, but users can choose whether to only use existing upstream data stores. `create_data_store` creates data stores by default and connects to existing ones as well automatically (thanks to Gregory Cage).  [Merge Request 18](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/18)
+- `Connections.connect()` can now be used with or without the `with` keyword. Consequently, stores can also be created outside a `with` block. `Connection.close()` performs the clean up that exiting the `with` block provides (thanks to Gregory Cage). [Merge Request 18](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/18)
+- Data stores can be cleaned up manually (thanks to Gregory Cage). [Merge Request 18](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/18)
+- Can now wait for the result of a running tool (thanks to Gregory Cage). [Merge Request 18](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/18)
+
+
+### Nova Galaxy, 0.7.4
+- Allow users to choose to check URL when calling get_url() from a Tool (thanks to Gregory Cage). [Merge Request 17](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/17)
+- Return more detailed information when getting the content of a DatasetCollection (thanks to Gregory Cage). [Merge Request 17](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/17)
+- Data stores are now persisted by default. A new mark_for_cleanup method has been provided to clean up data stores after usage. The persist method's behavior remains unchanged (thanks to Gregory Cage). [Merge Request 17](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/17)
+
+### Nova Galaxy, 0.7.3
+- Allow Dataset content to be set manually in memory rather than only loading from a file or downloading from Galaxy (thanks to Gregory Cage). [Merge Request 16](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/16)
+- Add file type (extensions) to Datasets (thanks to Gregory Cage). [Merge Request 16](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/16)
+
+### Nova Galaxy, 0.7.2
+- Add more states to Work State enum (thanks to Gregory Cage). [Merge Request 15](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/15)
+
+### Nova Galaxy, 0.7.1
+- Speeds ups recovering tools from data stores. (thanks to Gregory Cage). [Merge Request 14](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/14)
+
 ### Nova Galaxy, 0.7.0
 - Reworks some issues where the url was trying to be fetched in scenarios where it would take the full timeout (thanks to Gregory Cage).  [Merge Request 13](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/13)
 - Added a lot more user documentation (thanks to Gregory Cage).  [Merge Request 13](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/13)
