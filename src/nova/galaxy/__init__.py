@@ -7,6 +7,7 @@ from .outputs import Outputs
 from .parameters import Parameters
 from .tool import Tool
 from .util import WorkState
+from .workflow import Workflow
 
 __all__ = [
     "Connection",
@@ -18,6 +19,7 @@ __all__ = [
     "Parameters",
     "Tool",
     "WorkState",
+    "Workflow",
 ]
 
 __version__ = importlib.metadata.version("nova-galaxy")

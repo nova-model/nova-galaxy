@@ -11,5 +11,7 @@ class WorkState(Enum):
     QUEUED = "queued"
     RUNNING = "running"
     FINISHED = "finished"
+    PAUSED = "paused"
+    CANCELLED = "cancelled"
     ERROR = "error"
     DELETED = "deleted"
