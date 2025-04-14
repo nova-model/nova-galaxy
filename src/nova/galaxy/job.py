@@ -127,9 +127,9 @@ class Job:
         self.status.state = WorkState.ERROR
         return self.galaxy_instance.jobs.cancel_job(self.id)
 
-    def wait_for_results(self) -> None:
+    def wait_for_results(self, timeout: int = 12000) -> None:
         """Wait for job to finish."""
-        self.galaxy_instance.jobs.wait_for_job(self.id)
+        self.galaxy_instance.jobs.wait_for_job(self.id, maxwait=timeout)
 
     def get_state(self) -> JobStatus:
         """Returns current state of job."""

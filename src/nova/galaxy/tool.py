@@ -130,12 +130,13 @@ class Tool(AbstractWork):
             return self._job.get_results()
         return None
 
-    def wait_for_results(self, max_tries: int = 100) -> None:
+    def wait_for_results(self, timeout: int = 12000) -> None:
         if self._job:
             timer = 0
+            max_tries = 100
             while timer < max_tries:
                 try:
-                    self._job.wait_for_results()
+                    self._job.wait_for_results(timeout)
                     return
                 except Exception:
                     timer += 1
