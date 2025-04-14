@@ -45,7 +45,7 @@ def test_manual_cleanup_store(nova_instance: Connection, galaxy_instance: Galaxy
 
 def test_manual_connection_close(nova_instance: Connection, galaxy_instance: GalaxyInstance) -> None:
     connection = nova_instance.connect()
-    store = connection.use_data_store(name="nova_galaxy_testing")
+    store = connection.get_data_store(name="nova_galaxy_testing")
     store.mark_for_cleanup()
     history = galaxy_instance.histories.get_histories(name=store.name)
     assert len(history) > 0

@@ -106,7 +106,7 @@ def test_get_tool_stdout(nova_instance: Connection) -> None:
 
 def test_run_tool_independent_data_store(nova_instance: Connection) -> None:
     connection = nova_instance.connect()
-    store = connection.use_data_store(name="nova_galaxy_testing")
+    store = connection.get_data_store(name="nova_galaxy_testing")
     store.mark_for_cleanup()
     test_tool = Tool(TEST_TOOL_ID)
     outputs = test_tool.run(data_store=store, params=Parameters())
@@ -116,7 +116,7 @@ def test_run_tool_independent_data_store(nova_instance: Connection) -> None:
 
 def test_wait_for_results(nova_instance: Connection, galaxy_instance: GalaxyInstance) -> None:
     connection = nova_instance.connect()
-    store = connection.use_data_store(name="nova_galaxy_testing")
+    store = connection.get_data_store(name="nova_galaxy_testing")
     store.mark_for_cleanup()
     test_tool = Tool(TEST_TOOL_ID)
     outputs = test_tool.run(data_store=store, params=Parameters(), wait=False)

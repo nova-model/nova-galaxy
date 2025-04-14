@@ -1,8 +1,9 @@
 """The NOVA class is responsible for managing interactions with a Galaxy server instance."""
 
-from typing import Any, List, Optional
+from typing import Any, List
 
 from bioblend import galaxy
+from deprecated import deprecated
 
 from .data_store import Datastore
 from .tool import stop_all_tools_in_store
@@ -28,7 +29,7 @@ class ConnectionHelper:
     be automatically purged after connection is closed, unless Datastore.persist() is called for that store.
     """
 
-    def __init__(self, galaxy_instance: galaxy.GalaxyInstance, galaxy_url: Optional[str]):
+    def __init__(self, galaxy_instance: galaxy.GalaxyInstance, galaxy_url: str):
         self.galaxy_instance = galaxy_instance
         self.galaxy_url = galaxy_url
         self.datastores: List[Datastore] = []
@@ -41,11 +42,12 @@ class ConnectionHelper:
         """Exit method for use with "with" keyword."""
         self.close()
 
+    @deprecated(version="0.8.0", reason="Should use `get_data_store() instead.")
     def create_data_store(self, name: str) -> Datastore:
         """Creates a datastore with the given name."""
-        return self.use_data_store(name=name, create=True)
+        return self.get_data_store(name=name, create=True)
 
-    def use_data_store(self, name: str, create: bool = True) -> Datastore:
+    def get_data_store(self, name: str, create: bool = True) -> Datastore:
         """Creates a datastore with the given name."""
         histories = self.galaxy_instance.histories.get_histories(name=name)
         if len(histories) > 0:
@@ -85,15 +87,15 @@ class Connection:
 
     def __init__(
         self,
-        galaxy_url: Optional[str] = None,
-        galaxy_key: Optional[str] = None,
+        galaxy_url: str,
+        galaxy_key: str,
     ) -> None:
         """
         Initializes the Connection instance with the provided URL and API key.
 
         Args:
-            galaxy_url (Optional[str]): URL of the Galaxy instance.
-            galaxy_key (Optional[str]): API key for the Galaxy instance.
+            galaxy_url str: URL of the Galaxy instance.
+            galaxy_key str: API key for the Galaxy instance.
         """
         self.galaxy_url = galaxy_url
         self.galaxy_api_key = galaxy_key
@@ -101,7 +103,7 @@ class Connection:
 
     def _init_galaxy_instance(self) -> None:
         if not self.galaxy_url or not self.galaxy_api_key:
-            raise ValueError("Galaxy URL and API key must be provided or set in environment variables.")
+            raise ValueError("Galaxy URL and API key must be provided.")
         if not isinstance(self.galaxy_url, str):
             raise ValueError("Galaxy URL must be a string")
         self.galaxy_instance = galaxy.GalaxyInstance(url=self.galaxy_url, key=self.galaxy_api_key)
