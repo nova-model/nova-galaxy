@@ -23,7 +23,7 @@ def test_no_persist_store(nova_instance: Connection, galaxy_instance: GalaxyInst
 
 def test_persist_store(nova_instance: Connection, galaxy_instance: GalaxyInstance) -> None:
     with nova_instance.connect() as connection:
-        store = connection.create_data_store(name="nova_galaxy_testing")
+        store = connection.get_data_store(name="nova_galaxy_testing")
         store.persist()
         history = galaxy_instance.histories.get_histories(name=store.name)
         assert len(history) > 0
@@ -35,7 +35,7 @@ def test_persist_store(nova_instance: Connection, galaxy_instance: GalaxyInstanc
 
 def test_manual_cleanup_store(nova_instance: Connection, galaxy_instance: GalaxyInstance) -> None:
     with nova_instance.connect() as connection:
-        store = connection.create_data_store(name="nova_galaxy_testing")
+        store = connection.get_data_store(name="nova_galaxy_testing")
         history = galaxy_instance.histories.get_histories(name=store.name)
         assert len(history) > 0
         store.cleanup()
@@ -59,14 +59,14 @@ def test_manual_connection_close(nova_instance: Connection, galaxy_instance: Gal
 def test_recover_tools(nova_instance: Connection) -> None:
     first_id: Optional[str] = ""
     with nova_instance.connect() as connection:
-        store = connection.create_data_store(name="nova_galaxy_testing")
+        store = connection.get_data_store(name="nova_galaxy_testing")
         store.persist()
         test_tool = Tool(TEST_INT_TOOL_ID)
         test_tool.run_interactive(data_store=store)
         first_id = test_tool.get_uid()
 
     with nova_instance.connect() as connection:
-        store = connection.create_data_store(name="nova_galaxy_testing")
+        store = connection.get_data_store(name="nova_galaxy_testing")
         store.mark_for_cleanup()
         tools = store.recover_tools()
         assert len(tools) > 0

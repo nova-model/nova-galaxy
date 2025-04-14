@@ -26,7 +26,7 @@ class ConnectionHelper:
     """Manages datastore for current connection.
 
     Should not be instantiated manually. Use Connection.connect() instead. Any stores created using the connection will
-    be automatically purged after connection is closed, unless Datastore.persist() is called for that store.
+    be persisted after connection is closed, unless Datastore.mark_for_cleanup() is called for that store.
     """
 
     def __init__(self, galaxy_instance: galaxy.GalaxyInstance, galaxy_url: str):
@@ -44,11 +44,30 @@ class ConnectionHelper:
 
     @deprecated(version="0.8.0", reason="Should use `get_data_store() instead.")
     def create_data_store(self, name: str) -> Datastore:
-        """Creates a datastore with the given name."""
+        """DEPRECATED. Creates a datastore with the given name or returns an existing data store with that name.
+
+        Parameters
+        ----------
+        name: str
+            Name of the data store.
+        """
         return self.get_data_store(name=name, create=True)
 
     def get_data_store(self, name: str, create: bool = True) -> Datastore:
-        """Creates a datastore with the given name."""
+        """Fetches a datastore with the given name.
+
+        Parameters
+        ----------
+        name: str
+            Name of the data store.
+        create: bool
+            If true, creates a data store if one does not exist with the specified name.
+
+        Returns
+        -------
+        Datastore
+            Returns the specified or newly created data store.
+        """
         histories = self.galaxy_instance.histories.get_histories(name=name)
         if len(histories) > 0:
             store = Datastore(name, self, histories[0]["id"])
@@ -63,7 +82,13 @@ class ConnectionHelper:
             raise Exception("Data store does not exist and auto creation is set to false.")
 
     def remove_data_store(self, store: Datastore) -> None:
-        """Permanently deletes the data store with the given name."""
+        """Permanently deletes the data store with the given name.
+
+        Parameters
+        ----------
+        store: Datastore
+            The data store to remove from this connection.
+        """
         store.cleanup()
         self.datastores.remove(store)
 

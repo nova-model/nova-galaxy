@@ -13,11 +13,11 @@ GALAXY_API_KEY = os.environ.get("NOVA_GALAXY_TEST_GALAXY_KEY")
 
 @pytest.fixture
 def nova_instance() -> Connection:
-    nova = Connection(GALAXY_URL, GALAXY_API_KEY)
+    nova = Connection(GALAXY_URL, GALAXY_API_KEY)  # type: ignore
     return nova
 
 
 @pytest.fixture
 def galaxy_instance() -> GalaxyInstance:
-    galaxy = GalaxyInstance(url=GALAXY_URL, key=GALAXY_API_KEY)
+    galaxy = GalaxyInstance(url=GALAXY_URL, key=GALAXY_API_KEY)  # type: ignore
     return galaxy
