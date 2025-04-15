@@ -8,6 +8,7 @@ class Parameters:
 
     def __init__(self) -> None:
         self.inputs: Dict[str, Any] = {}
+        self.workflow_parameter_set = False
 
     def add_input(self, name: str, value: Any) -> None:
         self.inputs[name] = value

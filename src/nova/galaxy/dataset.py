@@ -7,13 +7,16 @@ as well as output data from Galaxy tools.
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from bioblend.galaxy.dataset_collections import DatasetCollectionClient
 from bioblend.galaxy.datasets import DatasetClient
 
 if TYPE_CHECKING:
     from .data_store import Datastore
+
+from .parameters import Parameters
+from .tool import Tool
 
 
 class DataState(Enum):
@@ -103,15 +106,47 @@ class Dataset(AbstractData):
 class DatasetCollection(AbstractData):
     """A group of files that can be uploaded as a collection and collectively be used in a Galaxy tool."""
 
-    def __init__(self, path: str, name: Optional[str] = None):
-        self.path = path
-        self.name = name or Path(path).name
+    def __init__(self, paths: List[str], name: str = ""):
+        self.paths = paths
+        self.name = name
         self.id: str
         self.store: "Datastore"
 
     def upload(self, store: "Datastore") -> None:
-        """Will need to handle this differently than single datasets."""
-        raise NotImplementedError
+        """ Upload several files as a collection.
+
+        Parameters
+        ----------
+        store: "Datastore"
+            The Datastore to upload the collection under
+        """
+
+        self.store = store
+
+        # Dictionary from file names to Datasets, needed when doing parallel upload
+        input_dictionary = {}
+
+        # Parameters for the Build List tool
+        params = Parameters()
+
+        # Create a Dataset for each requested path and add it to the dictionary and Parameters
+        for i in range(len(self.paths)):
+            new_dataset = Dataset(self.paths[i])
+            input_dictionary["Input Dataset" + str(i)] = new_dataset
+            params.add_input("Input Dataset" + str(i), new_dataset)
+
+        # Parallel upload of all the Datasets
+        upload_datasets(store, input_dictionary)
+
+        # Run the Build List tool on all the uploaded datasets, turning them into a DatasetCollection
+        build_list_tool = Tool("__BUILD_LIST__")
+        outputs = build_list_tool.run(data_store=store, params=Parameters())
+
+        # Return the new DatasetCollection produced by the tool
+        print(outputs.data)
+        new_collection = outputs.get_dataset("(as list)")
+        
+        self.id = new_collection.id
 
     def download(self, local_path: str) -> AbstractData:
         """Downloads this dataset collection to the local path given."""
@@ -126,10 +161,8 @@ class DatasetCollection(AbstractData):
         if self.store and self.id:
             dataset_client = DatasetCollectionClient(self.store.nova_connection.galaxy_instance)
             info = dataset_client.show_dataset_collection(self.id)
-            output = ""
-            for element in info["elements"]:
-                output += f"{element['element_identifier']}\n"
-            return output
+            self.info = info
+            return info
         else:
             raise Exception("Dataset collection is not present in Galaxy.")
 

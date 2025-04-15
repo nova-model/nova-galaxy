@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 if TYPE_CHECKING:
     from .data_store import Datastore  # Only imports for type checking
+    from .dataset import AbstractData
 
-from .dataset import AbstractData
 from .job import Job
 from .outputs import Outputs
 from .parameters import Parameters
@@ -18,7 +18,7 @@ class AbstractWork:
     def __init__(self, id: str):
         self.id = id
 
-    def get_outputs(self) -> List[AbstractData]:
+    def get_outputs(self) -> List['AbstractData']:
         return []
 
     def get_inputs(self) -> List[Parameters]:
