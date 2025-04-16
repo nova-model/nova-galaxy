@@ -1,6 +1,5 @@
 """Internal job related classes and functions."""
 
-import sys
 import time
 from threading import Thread
 from typing import TYPE_CHECKING, Dict, Optional
@@ -193,12 +192,12 @@ class Job:
                 time.sleep(1)
         return None
 
-    def get_console_output(self) -> Dict[str, str]:
+    def get_console_output(self, start: int, length: int) -> Dict[str, str]:
         """Get all the current console output."""
         out = self.galaxy_instance.make_get_request(
             f"{self.store.nova_connection.galaxy_url}/api/jobs/"
-            f"{self.id}/console_output?stdout_position=0&stdout_length="
-            f"{sys.maxsize - 1}&stderr_position=0&stderr_length={sys.maxsize - 1}"
+            f"{self.id}/console_output?stdout_position={start}&stdout_length="
+            f"{length}&stderr_position={start}&stderr_length={length}"
         )
         out.raise_for_status()
         return out.json()

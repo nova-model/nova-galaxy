@@ -1,5 +1,6 @@
 """Contains classes to run tools in Galaxy via Connection."""
 
+import sys
 from typing import TYPE_CHECKING, List, Optional, Union
 
 if TYPE_CHECKING:
@@ -145,10 +146,17 @@ class Tool(AbstractWork):
         if self._job:
             self._job.cancel(check_results=False)
 
-    def get_stdout(self) -> Optional[str]:
+    def get_stdout(self, position: Optional[int] = None, length: Optional[int] = None) -> Optional[str]:
         """Get the current STDOUT for a tool.
 
         Will be overridden everytime this tool is run.
+
+        Parameters
+        ----------
+        position: int, optional
+            The starting position from which to get the stdout. Useful if not wanting to fetch the entire stdout file.
+        length: int, optional
+            How many characters of stdout to read.
 
         Returns
         -------
@@ -156,13 +164,22 @@ class Tool(AbstractWork):
            Returns the current STDOUT of the tool if it is running or finished.
         """
         if self._job:
-            return self._job.get_console_output()["stdout"]
+            _position = 0 if position is None else position
+            _length = sys.maxsize - 1 if length is None else length
+            return self._job.get_console_output(_position, _length)["stdout"]
         return None
 
-    def get_stderr(self) -> Optional[str]:
+    def get_stderr(self, position: Optional[int] = None, length: Optional[int] = None) -> Optional[str]:
         """Get the current STDERR for a tool.
 
         Will be overridden everytime this tool is run.
+
+        Parameters
+        ----------
+        position: int, optional
+            The starting position from which to get the stderr. Useful if not wanting to fetch the entire stderr file.
+        length: int, optional
+            How many characters of stdout to read.
 
         Returns
         -------
@@ -170,7 +187,9 @@ class Tool(AbstractWork):
            Returns the current STDERR of the tool if it is running or finished.
         """
         if self._job:
-            return self._job.get_console_output()["stderr"]
+            _position = 0 if position is None else position
+            _length = sys.maxsize - 1 if length is None else length
+            return self._job.get_console_output(_position, _length)["stderr"]
         return None
 
     def get_url(self, max_tries: int = 5, check_url: bool = False) -> Optional[str]:
