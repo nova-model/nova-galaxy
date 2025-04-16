@@ -32,6 +32,10 @@ class Datastore:
         """Clean up and delete all content related to this Data Store after the associated connection is closed."""
         self.persist_store = False
 
+    def cleanup(self) -> None:
+        history = self.nova_connection.galaxy_instance.histories.get_histories(name=self.name)[0]["id"]
+        self.nova_connection.galaxy_instance.histories.delete_history(history_id=history, purge=True)
+
     def recover_tools(self, filter_running: bool = True) -> List[Tool]:
         """Recovers all running tools in this data_store.
 

@@ -130,6 +130,11 @@ class Tool(AbstractWork):
             return self._job.get_results()
         return None
 
+    def wait_for_results(self) -> None:
+        """Wait for this Tool to finish running."""
+        if self._job:
+            self._job.join_job_thread()
+
     def stop(self) -> None:
         """Stop the tool, but keep any existing results."""
         if self._job:

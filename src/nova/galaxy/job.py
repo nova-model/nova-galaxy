@@ -36,6 +36,7 @@ class Job:
         self.galaxy_instance = self.store.nova_connection.galaxy_instance
         self.status = JobStatus()
         self.url: Optional[str] = None
+        self.thread: Optional[Thread] = None
 
     def _run_and_wait(self, params: Optional[Parameters]) -> None:
         """Runs tools and waits for result."""
@@ -53,10 +54,10 @@ class Job:
     def run(self, params: Optional[Parameters], wait: bool) -> Optional[Outputs]:
         """Runs a job in Galaxy."""
         if self.status.state in [WorkState.NOT_STARTED, WorkState.FINISHED, WorkState.ERROR]:
-            thread = Thread(target=self._run_and_wait, args=(params,))
-            thread.start()
+            self.thread = Thread(target=self._run_and_wait, args=(params,))
+            self.thread.start()
             if wait:
-                thread.join()
+                self.join_job_thread()
                 return self.get_results()
             return None
         else:
@@ -127,9 +128,13 @@ class Job:
         self.status.state = WorkState.ERROR
         return self.galaxy_instance.jobs.cancel_job(self.id)
 
-    def wait_for_results(self) -> None:
+    def join_job_thread(self) -> None:
+        if self.thread:
+            self.thread.join()
+
+    def wait_for_results(self, timeout: float = 12000) -> None:
         """Wait for job to finish."""
-        self.galaxy_instance.jobs.wait_for_job(self.id)
+        self.galaxy_instance.jobs.wait_for_job(self.id, maxwait=timeout)
 
     def get_state(self) -> JobStatus:
         """Returns current state of job."""
