@@ -100,7 +100,9 @@ def test_get_tool_stdout(nova_instance: Connection) -> None:
         assert state == WorkState.RUNNING
         time.sleep(10)  # Tool takes a moment to produce stdout
         stdout = test_tool.get_stdout()
+        stdout_substring = test_tool.get_stdout(5, 50)
         assert stdout is not None
+        assert stdout_substring in stdout
         test_tool.cancel()
 
 
