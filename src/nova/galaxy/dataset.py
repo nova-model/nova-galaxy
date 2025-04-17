@@ -129,9 +129,7 @@ class Dataset(AbstractData):
         try:
             if self.store and self.id:
                 dataset_client = DatasetClient(self.store.nova_connection.galaxy_instance)
-                self._content = dataset_client.download_dataset(
-                    self.id, use_default_filename=False, file_path=None
-                ).decode("utf-8")
+                self._content = dataset_client.download_dataset(self.id, use_default_filename=False, file_path=None)
             else:
                 with open(self.path, "r") as file:
                     self._content = file.read()

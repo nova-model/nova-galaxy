@@ -23,7 +23,7 @@ def test_run_tool(nova_instance: Connection) -> None:
         outputs = test_tool.run(data_store=store, params=Parameters())
         assert outputs is not None
         data = outputs.get_dataset("output1")
-        assert "hostname:" in data.get_content()
+        assert "hostname:" in data.get_content().decode("utf-8")
 
 
 def test_run_tool_interactive(nova_instance: Connection, galaxy_instance: GalaxyInstance) -> None:

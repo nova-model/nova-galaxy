@@ -155,6 +155,7 @@ class Job:
                 for dataset in self.datasets:
                     d = Dataset(dataset["output_name"])
                     d.id = dataset["id"]
+                    d.file_type = dataset.get("file_ext", "")
                     d.store = self.store
                     outputs.add_output(d)
             if self.collections:
