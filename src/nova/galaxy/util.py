@@ -15,3 +15,4 @@ class WorkState(Enum):
     CANCELLED = "cancelled"
     ERROR = "error"
     DELETED = "deleted"
+    PREPARING_INPUTS = "preparing_inputs"

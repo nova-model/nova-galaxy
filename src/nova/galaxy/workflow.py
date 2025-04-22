@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from .data_store import Datastore
     from .dataset import AbstractData
 
-from .dataset import AbstractData, Dataset, DatasetCollection, upload_datasets
+from .dataset import AbstractData, Dataset, DatasetCollection
 from .outputs import Outputs
 from .parameters import Parameters
 from .tool import AbstractWork
@@ -125,9 +125,13 @@ class Invocation:
                              raise ValueError(f"Workflow step label '{label}' not found in workflow '{self.workflow_id}' for setting parameters. Available step labels: {list(label_to_step_id.keys())}")
                         bioblend_params[step_id] = value
                     else:
-                        print(f"Warning: Parameter '{label}' is not a Dataset, DatasetCollection, or a dictionary associated with a known step label. It will be ignored.")
-
-
+                        
+                        # If not a dictionary, treat it as a parameter name + value
+                        input_id = label_to_input_id.get(label)
+                        if not input_id:
+                            raise ValueError(f"Workflow step label '{label}' not found in workflow '{self.workflow_id}' for setting parameters. Available step labels: {list(label_to_step_id.keys())}")
+                        bioblend_params[input_id] = value
+    
             self.status.state = WorkState.QUEUED
             invocation_info = self.galaxy_instance.workflows.invoke_workflow(
                 workflow_id=self.workflow_id,

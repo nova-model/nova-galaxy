@@ -9,7 +9,8 @@ from bioblend import galaxy
 
 if TYPE_CHECKING:
     from .data_store import Datastore
-from .dataset import AbstractData, Dataset, DatasetCollection, upload_datasets
+    from .dataset import AbstractData, Dataset, DatasetCollection, upload_datasets
+from .dataset_factory import DatasetFactory
 from .outputs import Outputs
 from .parameters import Parameters
 from .util import WorkState
@@ -92,14 +93,7 @@ class Job:
         # Set Tool Inputs
         tool_inputs = galaxy.tools.inputs.inputs()
         if params:
-            for param, val in params.inputs.items():
-                if isinstance(val, AbstractData):
-                    datasets_to_upload[param] = val
-                else:
-                    tool_inputs.set_param(param, val)
-            ids = upload_datasets(store=self.store, datasets=datasets_to_upload)
-            for param, val in ids.items():
-                tool_inputs.set_dataset_param(param, val)
+            tool_inputs = DatasetFactory.upload_data(self.store, params)
 
         # Run tool and wait for job to finish
         self.status.state = WorkState.QUEUED
@@ -149,15 +143,11 @@ class Job:
             outputs = Outputs()
             if self.datasets:
                 for dataset in self.datasets:
-                    d = Dataset(dataset["output_name"])
-                    d.id = dataset["id"]
-                    d.store = self.store
-                    outputs.add_output(d)
+                    d = DatasetFactory.create_dataset(self.store, dataset)
+                    outputs.add(d)
             if self.collections:
                 for collection in self.collections:
-                    dc = DatasetCollection(collection["output_name"])
-                    dc.id = collection["id"]
-                    dc.store = self.store
+                    dc = DatasetFactory.create_dataset_collection(self.store, collection)
                     outputs.add_output(dc)
 
             return outputs

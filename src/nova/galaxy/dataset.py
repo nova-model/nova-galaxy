@@ -7,13 +7,16 @@ as well as output data from Galaxy tools.
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from bioblend.galaxy.dataset_collections import DatasetCollectionClient
 from bioblend.galaxy.datasets import DatasetClient
 
 if TYPE_CHECKING:
     from .data_store import Datastore
+
+from .parameters import Parameters
+from .tool import Tool
 
 
 class DataState(Enum):
@@ -143,15 +146,47 @@ class Dataset(AbstractData):
 class DatasetCollection(AbstractData):
     """A group of files that can be uploaded as a collection and collectively be used in a Galaxy tool."""
 
-    def __init__(self, path: str, name: Optional[str] = None):
-        self.path = path
-        self.name = name or Path(path).name
-        self.id: str
+    def __init__(self, paths: List[str], name: str = ""):
+        self.paths = paths
+        self.name = name
+        self.id: str = ""
         self.store: "Datastore"
 
     def upload(self, store: "Datastore") -> None:
-        """Will need to handle this differently than single datasets."""
-        raise NotImplementedError
+        """ Upload several files as a collection.
+
+        Parameters
+        ----------
+        store: "Datastore"
+            The Datastore to upload the collection under
+        """
+
+        self.store = store
+
+        # Dictionary from file names to Datasets, needed when doing parallel upload
+        input_dictionary = {}
+
+        # Parameters for the Build List tool
+        params = Parameters()
+
+        # Create a Dataset for each requested path and add it to the dictionary and Parameters
+        for i in range(len(self.paths)):
+            new_dataset = Dataset(self.paths[i])
+            input_dictionary["Input Dataset" + str(i)] = new_dataset
+            params.add_input("Input Dataset" + str(i), new_dataset)
+
+        # Parallel upload of all the Datasets
+        upload_datasets(store, input_dictionary)
+
+        # Run the Build List tool on all the uploaded datasets, turning them into a DatasetCollection
+        build_list_tool = Tool("__BUILD_LIST__")
+        outputs = build_list_tool.run(data_store=store, params=Parameters())
+
+        # Return the new DatasetCollection produced by the tool
+        print(outputs.data)
+        new_collection = outputs.get_dataset("(as list)")
+        
+        self.id = new_collection.id
 
     def download(self, local_path: str) -> AbstractData:
         """Downloads this dataset collection to the local path given."""
@@ -163,11 +198,11 @@ class DatasetCollection(AbstractData):
             raise Exception("Dataset collection is not present in Galaxy.")
 
     def get_content(self) -> Any:
-        """Get a list of the content of this Collection along with info on each element."""
         if self.store and self.id:
             dataset_client = DatasetCollectionClient(self.store.nova_connection.galaxy_instance)
             info = dataset_client.show_dataset_collection(self.id)
-            return info["elements"]
+            self.info = info
+            return info
         else:
             raise Exception("Dataset collection is not present in Galaxy.")
 
@@ -179,14 +214,9 @@ def upload_datasets(store: "Datastore", datasets: Dict[str, AbstractData]) -> Di
     history_id = galaxy_instance.histories.get_histories(name=store.name)[0]["id"]
     dataset_ids = {}
     for name, dataset in datasets.items():
-        if len(dataset.path) < 1 and dataset.get_content():
-            dataset_info = galaxy_instance.tools.paste_content(
-                content=str(dataset.get_content()), history_id=history_id
-            )
-        else:
-            dataset_info = galaxy_instance.tools.upload_file(path=dataset.path, history_id=history_id)
-        dataset_ids[name] = dataset_info["outputs"][0]["id"]
-        dataset.id = dataset_info["outputs"][0]["id"]
+        dataset_id = galaxy_instance.tools.upload_file(path=dataset.path, history_id=history_id)
+        dataset_ids[name] = dataset_id["outputs"][0]["id"]
+        dataset.id = dataset_id["outputs"][0]["id"]
         dataset.store = store
     for dataset_output in dataset_ids.values():
         dataset_client.wait_for_dataset(dataset_output)

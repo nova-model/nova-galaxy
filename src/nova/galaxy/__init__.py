@@ -3,6 +3,7 @@ import importlib.metadata
 from .connection import Connection
 from .data_store import Datastore
 from .dataset import Dataset, DatasetCollection, upload_datasets
+from .dataset_factory import DatasetFactory
 from .outputs import Outputs
 from .parameters import Parameters
 from .tool import Tool
@@ -14,6 +15,7 @@ __all__ = [
     "Datastore",
     "Dataset",
     "DatasetCollection",
+    "DatasetFactory",
     "upload_datasets",
     "Outputs",
     "Parameters",
