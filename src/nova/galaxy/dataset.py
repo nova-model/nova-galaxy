@@ -79,19 +79,32 @@ class Dataset(AbstractData):
         self.file_type: str = Path(path).suffix
         self._content: Any = None
 
-    def upload(self, store: "Datastore") -> None:
+    def upload(self, store: "Datastore", name: Optional[str] = None) -> None:
         """Uploads this dataset to the data store given.
 
         This method will automatically set the id, and store class variables for future use.
+
+        Parameters
+        ----------
+        store: Datastore
+            The data store to upload this dataset to.
+        name: Optional[str]
+            The name that will be used for the dataset upstream. Defaults to the local name.
         """
         galaxy_instance = store.nova_connection.galaxy_instance
         dataset_client = DatasetClient(galaxy_instance)
         history_id = galaxy_instance.histories.get_histories(name=store.name)[0]["id"]
-        if self._content:
-            dataset_id = galaxy_instance.tools.paste_content(content=self._content, history_id=history_id)
+        if name:
+            file_name = name
         else:
-            dataset_id = galaxy_instance.tools.upload_file(path=self.path, history_id=history_id)
-        self.id = dataset_id["outputs"][0]["id"]
+            file_name = self.name
+        if self._content:
+            dataset_info = galaxy_instance.tools.paste_content(
+                content=self._content, history_id=history_id, file_name=file_name
+            )
+        else:
+            dataset_info = galaxy_instance.tools.upload_file(path=self.path, history_id=history_id, file_name=file_name)
+        self.id = dataset_info["outputs"][0]["id"]
         self.store = store
         dataset_client.wait_for_dataset(self.id)
 
