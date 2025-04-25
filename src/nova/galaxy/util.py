@@ -13,3 +13,5 @@ class WorkState(Enum):
     FINISHED = "finished"
     ERROR = "error"
     DELETED = "deleted"
+    CANCELED = "canceled"
+    STOPPING = "stopping"

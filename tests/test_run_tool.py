@@ -64,15 +64,19 @@ def test_run_tool_interactive(nova_instance: Connection, galaxy_instance: Galaxy
 def test_status(nova_instance: Connection) -> None:
     with nova_instance.connect() as connection:
         store = connection.get_data_store(name="nova_galaxy_testing")
-        store.mark_for_cleanup()
+        # store.mark_for_cleanup()
         test_tool = Tool(TEST_INT_TOOL_ID)
         params = Parameters()
         state = test_tool.get_status()
         assert state == WorkState.NOT_STARTED
         test_tool.run_interactive(data_store=store, params=params, check_url=False)
+        time.sleep(4)
         state = test_tool.get_status()
         assert state == WorkState.RUNNING
         test_tool.stop()
+        state = test_tool.get_status()
+        assert state == WorkState.STOPPING
+        test_tool.wait_for_results()
         state = test_tool.get_status()
         assert state == WorkState.FINISHED
 
@@ -86,7 +90,35 @@ def test_cancel_tool(nova_instance: Connection) -> None:
         test_tool.run_interactive(data_store=store, params=params, check_url=False)
         test_tool.cancel()
         state = test_tool.get_status()
-        assert state == WorkState.ERROR
+        assert state == WorkState.STOPPING
+
+
+def test_cancel_tool_while_uploading(nova_instance: Connection, galaxy_instance: GalaxyInstance) -> None:
+    with nova_instance.connect() as connection:
+        store = connection.get_data_store(name="nova_galaxy_testing")
+        store.mark_for_cleanup()
+        notebook = Dataset(path="tests/test_files/test_jupyter_notebook.ipynb")
+        notebook2 = Dataset(path="tests/test_files/test_jupyter_notebook.ipynb")
+        test_tool = Tool(TEST_INT_TOOL_ID)
+        params = Parameters()
+        params.add_input("mode|mode_select", "previous")
+        params.add_input("ipynb", notebook)
+        # Tool doesn't have this parameter, but since we're canceling in the upload stage, should still be fine to test.
+        params.add_input("extra_notebook", notebook2)
+        params.add_input("run_it", True)
+        test_tool.run(data_store=store, params=params, wait=False)
+        time.sleep(2)
+        state = test_tool.get_status()
+        assert state == WorkState.UPLOADING_DATA
+        test_tool.cancel()
+        state = test_tool.get_status()
+        assert state == WorkState.STOPPING
+        test_tool.wait_for_results()
+        state = test_tool.get_status()
+        assert state == WorkState.CANCELED
+        history_id = galaxy_instance.histories.get_histories(name="nova_galaxy_testing")[0]["id"]
+        history_details = galaxy_instance.histories.get_status(history_id=history_id)
+        assert history_details["percent_complete"] == 0
 
 
 def test_get_tool_stdout(nova_instance: Connection) -> None:
