@@ -1,7 +1,7 @@
 """Internal job related classes and functions."""
 
 import time
-from threading import Thread
+from threading import Thread, Lock
 from typing import TYPE_CHECKING, Dict, Optional
 
 from bioblend import galaxy
@@ -19,10 +19,20 @@ class JobStatus:
     """Internal structure to hold job status info."""
 
     def __init__(self) -> None:
-        self.state = WorkState.NOT_STARTED
         self.details = ""
         self.error_msg = ""
+        self.lock = Lock()
+        self._state = WorkState.NOT_STARTED
 
+    @property
+    def state(self):
+        with self.lock:
+            return self._state
+
+    @state.setter
+    def state(self, value):
+        with self.lock:
+            self._state = value
 
 class Job:
     """Internal class managing Galaxy job execution. Should not be used by end users."""
@@ -180,13 +190,16 @@ class Job:
     def get_state(self) -> JobStatus:
         """Returns current state of job."""
         if self.status.state == WorkState.QUEUED:
-            job = self.galaxy_instance.jobs.show_job(self.id)
-            if job["state"] == "running":
-                self.status.state = WorkState.RUNNING
-            elif job["state"] == "error":
-                self.status.state = WorkState.ERROR
-            elif job["state"] == "deleted":
-                self.status.state = WorkState.DELETED
+            try:
+                job = self.galaxy_instance.jobs.show_job(self.id)
+                if job["state"] == "running":
+                    self.status.state = WorkState.RUNNING
+                elif job["state"] == "error":
+                    self.status.state = WorkState.ERROR
+                elif job["state"] == "deleted":
+                    self.status.state = WorkState.DELETED
+            except:
+                pass
         return self.status
 
     def get_results(self) -> Outputs:
