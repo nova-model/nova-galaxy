@@ -56,7 +56,7 @@ class Job:
             self.wait_for_results()
         except Exception as e:
             self.url = None
-            if self.status.state in [WorkState.STOPPING, WorkState.CANCELING, WorkState.CANCELED]:
+            if self.status.state in [WorkState.CANCELING, WorkState.CANCELED]:
                 self.status.state = WorkState.CANCELED
                 return
             self.status.state = WorkState.ERROR
