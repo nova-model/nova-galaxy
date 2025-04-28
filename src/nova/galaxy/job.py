@@ -161,23 +161,25 @@ class Job:
         for dataset_id in datasets.values():
             galaxy_instance.histories.delete_dataset(history_id=history_id, dataset_id=dataset_id, purge=True)
 
-    def cancel(self, stop: bool = False) -> bool:
-        """Cancels or stops a job in Galaxy."""
+    def stop(self) -> bool:
+        """Stops a job in Galaxy."""
+        self.url = None
+        self.status.state = WorkState.STOPPING
+        response = self.galaxy_instance.make_put_request(
+            f"{self.store.nova_connection.galaxy_url}/api/jobs/{self.id}/finish"
+        )
+        if response:
+            return True
+        else:
+            self.status.error_msg = "could not stop job"
+            return False
+
+    def cancel(self) -> bool:
+        """Cancel a job in Galaxy."""
         self.url = None
         self.status.state = WorkState.CANCELING
-        if stop:
-            self.status.state = WorkState.STOPPING
-            response = self.galaxy_instance.make_put_request(
-                f"{self.store.nova_connection.galaxy_url}/api/jobs/{self.id}/finish"
-            )
-            if response:
-                return True
-            else:
-                self.status.error_msg = "could not stop job"
-                return False
         try:
-            success = self.galaxy_instance.jobs.cancel_job(self.id)
-            return success
+            return self.galaxy_instance.jobs.cancel_job(self.id)
         except Exception:
             return False
 

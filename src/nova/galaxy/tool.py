@@ -139,12 +139,12 @@ class Tool(AbstractWork):
     def stop(self) -> None:
         """Stop the tool, but keep any existing results."""
         if self._job:
-            self._job.cancel(stop=True)
+            self._job.stop()
 
     def cancel(self) -> None:
         """Cancels the tool execution and gets rid of any results collected."""
         if self._job:
-            self._job.cancel(stop=False)
+            self._job.cancel()
 
     def get_stdout(self, position: Optional[int] = None, length: Optional[int] = None) -> Optional[str]:
         """Get the current STDOUT for a tool.
