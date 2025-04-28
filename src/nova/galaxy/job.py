@@ -55,7 +55,7 @@ class Job:
             self.wait_for_results()
         except Exception as e:
             self.url = None
-            if self.status.state == WorkState.STOPPING or self.status.state == WorkState.CANCELED:
+            if self.status.state in [WorkState.STOPPING, WorkState.CANCELING, WorkState.CANCELED]:
                 self.status.state = WorkState.CANCELED
                 return
             self.status.state = WorkState.ERROR
@@ -116,7 +116,7 @@ class Job:
                 for param, val in ids.items():
                     tool_inputs.set_dataset_param(param, val)
 
-        if self.status.state == WorkState.STOPPING:
+        if self.status.state in [WorkState.STOPPING, WorkState.CANCELING]:
             self.status.state = WorkState.CANCELED
             return
         # Run tool and wait for job to finish
@@ -135,7 +135,7 @@ class Job:
         history_id = galaxy_instance.histories.get_histories(name=self.store.name)[0]["id"]
         dataset_ids: Dict[str, str] = {}
         for name, dataset in datasets.items():
-            if self.status.state == WorkState.STOPPING:
+            if self.status.state in [WorkState.STOPPING, WorkState.CANCELING]:
                 self.cleanup_datasets(dataset_ids)
                 return None
             if len(dataset.path) < 1 and dataset.get_content():
@@ -148,7 +148,7 @@ class Job:
             dataset.id = dataset_info["outputs"][0]["id"]
             dataset.store = self.store
         for dataset_output in dataset_ids.values():
-            if self.status.state == WorkState.STOPPING:
+            if self.status.state in [WorkState.STOPPING, WorkState.CANCELING]:
                 self.cleanup_datasets(dataset_ids)
                 return None
             dataset_client.wait_for_dataset(dataset_output)
@@ -160,11 +160,12 @@ class Job:
         for dataset_id in datasets.values():
             galaxy_instance.histories.delete_dataset(history_id=history_id, dataset_id=dataset_id, purge=True)
 
-    def cancel(self, check_results: bool = False) -> bool:
+    def cancel(self, stop: bool = False) -> bool:
         """Cancels or stops a job in Galaxy."""
         self.url = None
-        self.status.state = WorkState.STOPPING
-        if check_results:
+        self.status.state = WorkState.CANCELING
+        if stop:
+            self.status.state = WorkState.STOPPING
             response = self.galaxy_instance.make_put_request(
                 f"{self.store.nova_connection.galaxy_url}/api/jobs/{self.id}/finish"
             )

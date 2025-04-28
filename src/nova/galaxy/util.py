@@ -15,3 +15,4 @@ class WorkState(Enum):
     DELETED = "deleted"
     CANCELED = "canceled"
     STOPPING = "stopping"
+    CANCELING = "canceling"

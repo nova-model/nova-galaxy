@@ -90,7 +90,7 @@ def test_cancel_tool(nova_instance: Connection) -> None:
         test_tool.run_interactive(data_store=store, params=params, check_url=False)
         test_tool.cancel()
         state = test_tool.get_status()
-        assert state == WorkState.STOPPING
+        assert state == WorkState.CANCELING
 
 
 def test_cancel_tool_while_uploading(nova_instance: Connection, galaxy_instance: GalaxyInstance) -> None:
@@ -112,7 +112,7 @@ def test_cancel_tool_while_uploading(nova_instance: Connection, galaxy_instance:
         assert state == WorkState.UPLOADING_DATA
         test_tool.cancel()
         state = test_tool.get_status()
-        assert state == WorkState.STOPPING
+        assert state == WorkState.CANCELING
         test_tool.wait_for_results()
         state = test_tool.get_status()
         assert state == WorkState.CANCELED
