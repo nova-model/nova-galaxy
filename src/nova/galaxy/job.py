@@ -1,7 +1,7 @@
 """Internal job related classes and functions."""
 
 import time
-from threading import Thread, Lock
+from threading import Lock, Thread
 from typing import TYPE_CHECKING, Dict, Optional
 
 from bioblend import galaxy
@@ -25,14 +25,15 @@ class JobStatus:
         self._state = WorkState.NOT_STARTED
 
     @property
-    def state(self):
+    def state(self) -> WorkState:
         with self.lock:
             return self._state
 
     @state.setter
-    def state(self, value):
+    def state(self, value: WorkState) -> None:
         with self.lock:
             self._state = value
+
 
 class Job:
     """Internal class managing Galaxy job execution. Should not be used by end users."""
@@ -199,7 +200,7 @@ class Job:
                     self.status.state = WorkState.ERROR
                 elif job["state"] == "deleted":
                     self.status.state = WorkState.DELETED
-            except:
+            except Exception:
                 pass
         return self.status
 
