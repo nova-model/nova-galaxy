@@ -7,7 +7,7 @@ This example shows how to run a tool that takes multiple datasets as input.
 
 .. code-block:: python
 
-   from nova.galaxy import Nova, Dataset, Tool, Parameters, upload_datasets
+   from nova.galaxy import Nova, Dataset, Tool, Parameters
 
    galaxy_url = "your_galaxy_url"
    galaxy_key = "your_galaxy_api_key"
@@ -19,9 +19,6 @@ This example shows how to run a tool that takes multiple datasets as input.
        # Create multiple datasets
        dataset1 = Dataset("path/to/file1.txt", name="File 1")
        dataset2 = Dataset("path/to/file2.txt", name="File 2")
-
-       # Upload multiple datasets in parallel
-       upload_datasets(data_store, {"input1": dataset1, "input2": dataset2})
 
        # Define parameters, using the uploaded datasets
        params = Parameters()

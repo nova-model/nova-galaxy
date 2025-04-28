@@ -7,7 +7,7 @@ as well as output data from Galaxy tools.
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 from bioblend.galaxy.dataset_collections import DatasetCollectionClient
 from bioblend.galaxy.datasets import DatasetClient
@@ -47,6 +47,7 @@ class AbstractData(ABC):
         super().__init__()
         self.path: str = ""
         self.id: Union[str, None] = ""
+        self.name: str = ""
         self.store: Union[None, "Datastore"] = None
 
     @abstractmethod
@@ -79,19 +80,32 @@ class Dataset(AbstractData):
         self.file_type: str = Path(path).suffix
         self._content: Any = None
 
-    def upload(self, store: "Datastore") -> None:
+    def upload(self, store: "Datastore", name: Optional[str] = None) -> None:
         """Uploads this dataset to the data store given.
 
         This method will automatically set the id, and store class variables for future use.
+
+        Parameters
+        ----------
+        store: Datastore
+            The data store to upload this dataset to.
+        name: Optional[str]
+            The name that will be used for the dataset upstream. Defaults to the local name.
         """
         galaxy_instance = store.nova_connection.galaxy_instance
         dataset_client = DatasetClient(galaxy_instance)
         history_id = galaxy_instance.histories.get_histories(name=store.name)[0]["id"]
-        if self._content:
-            dataset_id = galaxy_instance.tools.paste_content(content=self._content, history_id=history_id)
+        if name:
+            file_name = name
         else:
-            dataset_id = galaxy_instance.tools.upload_file(path=self.path, history_id=history_id)
-        self.id = dataset_id["outputs"][0]["id"]
+            file_name = self.name
+        if self._content:
+            dataset_info = galaxy_instance.tools.paste_content(
+                content=self._content, history_id=history_id, file_name=file_name
+            )
+        else:
+            dataset_info = galaxy_instance.tools.upload_file(path=self.path, history_id=history_id, file_name=file_name)
+        self.id = dataset_info["outputs"][0]["id"]
         self.store = store
         dataset_client.wait_for_dataset(self.id)
 
@@ -168,24 +182,3 @@ class DatasetCollection(AbstractData):
             return info["elements"]
         else:
             raise Exception("Dataset collection is not present in Galaxy.")
-
-
-def upload_datasets(store: "Datastore", datasets: Dict[str, AbstractData]) -> Dict[str, str]:
-    """Helper method to upload multiple datasets or collections in parallel."""
-    galaxy_instance = store.nova_connection.galaxy_instance
-    dataset_client = DatasetClient(galaxy_instance)
-    history_id = galaxy_instance.histories.get_histories(name=store.name)[0]["id"]
-    dataset_ids = {}
-    for name, dataset in datasets.items():
-        if len(dataset.path) < 1 and dataset.get_content():
-            dataset_info = galaxy_instance.tools.paste_content(
-                content=str(dataset.get_content()), history_id=history_id
-            )
-        else:
-            dataset_info = galaxy_instance.tools.upload_file(path=dataset.path, history_id=history_id)
-        dataset_ids[name] = dataset_info["outputs"][0]["id"]
-        dataset.id = dataset_info["outputs"][0]["id"]
-        dataset.store = store
-    for dataset_output in dataset_ids.values():
-        dataset_client.wait_for_dataset(dataset_output)
-    return dataset_ids
