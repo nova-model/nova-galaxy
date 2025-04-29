@@ -19,9 +19,8 @@ class JobStatus:
     """Internal structure to hold job status info."""
 
     def __init__(self) -> None:
-        self.details = ""
-        self.error_msg = ""
         self.lock = Lock()
+        self._details = ""
         self._state = WorkState.NOT_STARTED
 
     @property
@@ -33,6 +32,16 @@ class JobStatus:
     def state(self, value: WorkState) -> None:
         with self.lock:
             self._state = value
+
+    @property
+    def details(self) -> str:
+        with self.lock:
+            return self._details
+
+    @details.setter
+    def details(self, value: str) -> None:
+        with self.lock:
+            self._details = value
 
 
 class Job:
@@ -51,8 +60,8 @@ class Job:
 
     def _run_and_wait(self, params: Optional[Parameters]) -> None:
         """Runs tools and waits for result."""
-        self.submit(params)
         try:
+            self.submit(params)
             self.wait_for_results()
         except Exception as e:
             self.url = None
@@ -60,7 +69,7 @@ class Job:
                 self.status.state = WorkState.CANCELED
                 return
             self.status.state = WorkState.ERROR
-            self.status.error_msg = str(e)
+            self.status.details = str(e)
             return
 
         self.status.state = WorkState.FINISHED
@@ -171,7 +180,7 @@ class Job:
         if response:
             return True
         else:
-            self.status.error_msg = "could not stop job"
+            self.status.details = "could not stop job"
             return False
 
     def cancel(self) -> bool:
@@ -206,7 +215,7 @@ class Job:
                 pass
         return self.status
 
-    def get_results(self) -> Outputs:
+    def get_results(self) -> Optional[Outputs]:
         """Return results from finished job."""
         if self.status.state == WorkState.FINISHED:
             outputs = Outputs()
@@ -225,6 +234,8 @@ class Job:
                     outputs.add_output(dc)
 
             return outputs
+        elif self.status.state == WorkState.ERROR:
+            return None
         else:
             raise Exception(f"Job {self.id} has not finished running.")
 

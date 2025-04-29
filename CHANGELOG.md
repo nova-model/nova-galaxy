@@ -1,9 +1,27 @@
+## Nova Galaxy 0.9.1
+- Added `get_full_status` method to tool in order to get detailed messages mostly for error states (thanks to Gregory Cage). [Merge Request 23](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/23)
+
+### Nova Galaxy 0.9.0
+- When uploading datasets with manually set content, the upstream name will mirror the local name property of the dataset (thanks to Gregory Cage). [Merge Request 22](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/22)
+- New WorkStates for the actual process of stopping and canceling jobs (separate from the terminal states already present) (thanks to Sergey Yakubov and Gregory Cage). [Merge Request 22](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/22)
+- Fixed major bug where tools were not being stopped and fetching results properly (canceling worked fine) (thanks to Gregory Cage). [Merge Request 22](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/22)
+- Made tool status thread safe (thanks to Sergey Yakubov and Gregory Cage). [Merge Request 22](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/22)
+- If canceling or stopping jobs in the uploading data state, will stop the uploading when able (thanks to Sergey Yakubov and Gregory Cage). [Merge Request 22](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/22)
+- Misc backend code cleanup (thanks to Sergey Yakubov and Gregory Cage). [Merge Request 22](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/22)
+
+### Nova Galaxy, 0.8.2
+- Now returns file type automatically if available (thanks to Gregory Cage). [Merge Request 21](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/21)
+- Returns file content as bytes instead of string (thanks to Gregory Cage). [Merge Request 21](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/21)
+
+
+### Nova Galaxy, 0.8.1
+- Can now fetch specific stdout and stderr positions and length (thanks to Gregory Cage). [Merge Request 19](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/19)
+
 ### Nova Galaxy, 0.8.0
 - `get_data_store()` has been added to the ConnectionHelper class. This functionally does the same thing as create_data_store, but users can choose whether to only use existing upstream data stores. `create_data_store` creates data stores by default and connects to existing ones as well automatically (thanks to Gregory Cage).  [Merge Request 18](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/18)
 - `Connections.connect()` can now be used with or without the `with` keyword. Consequently, stores can also be created outside a `with` block. `Connection.close()` performs the clean up that exiting the `with` block provides (thanks to Gregory Cage). [Merge Request 18](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/18)
 - Data stores can be cleaned up manually (thanks to Gregory Cage). [Merge Request 18](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/18)
 - Can now wait for the result of a running tool (thanks to Gregory Cage). [Merge Request 18](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/18)
-
 
 ### Nova Galaxy, 0.7.4
 - Allow users to choose to check URL when calling get_url() from a Tool (thanks to Gregory Cage). [Merge Request 17](https://code.ornl.gov/ndip/public-packages/nova-galaxy/-/merge_requests/17)
