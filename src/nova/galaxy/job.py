@@ -60,8 +60,8 @@ class Job:
 
     def _run_and_wait(self, params: Optional[Parameters]) -> None:
         """Runs tools and waits for result."""
-        self.submit(params)
         try:
+            self.submit(params)
             self.wait_for_results()
         except Exception as e:
             self.url = None
