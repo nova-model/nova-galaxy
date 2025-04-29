@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from .data_store import Datastore  # Only imports for type checking
 
 from .dataset import AbstractData
-from .job import Job
+from .job import Job, JobStatus
 from .outputs import Outputs
 from .parameters import Parameters
 from .util import WorkState
@@ -108,13 +108,30 @@ class Tool(AbstractWork):
         Returns
         -------
         WorkState
-           Returns the status of the tool which will be one of the following values: not_started, uploading, queued,
-           running, finished, error
+           Returns the status of the tool which will be a WorkState value.
         """
         if self._job:
             return self._job.get_state().state
         else:
             return WorkState.NOT_STARTED
+
+    def get_full_status(self) -> JobStatus:
+        """Returns the full status and state of the tool. Includes any error or warning messages.
+
+        Raises
+        ------
+        Exception
+            If the job has not been started.
+
+        Returns
+        -------
+        JobStatus
+           Returns the full status of the tool including the WorkState and any error messages set by the tool.
+        """
+        if self._job:
+            return self._job.get_state()
+        else:
+            raise Exception("Job has not started.")
 
     def get_results(self) -> Optional[Outputs]:
         """Returns the results from running this tool.

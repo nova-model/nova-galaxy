@@ -81,6 +81,19 @@ def test_status(nova_instance: Connection) -> None:
         assert state == WorkState.FINISHED
 
 
+def test_full_status(nova_instance: Connection) -> None:
+    with nova_instance.connect() as connection:
+        store = connection.get_data_store(name="nova_galaxy_testing")
+        store.mark_for_cleanup()
+        test_tool = Tool(TEST_TOOL_ID)
+        params = Parameters()
+        params.add_input("command_mode|command", "fail")
+        test_tool.run(data_store=store, params=params)
+        assert test_tool.get_status() == WorkState.ERROR
+        assert test_tool.get_full_status().details != ""
+        assert test_tool.get_stderr() != ""
+
+
 def test_cancel_tool(nova_instance: Connection) -> None:
     with nova_instance.connect() as connection:
         store = connection.get_data_store(name="nova_galaxy_testing")
