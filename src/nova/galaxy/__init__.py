@@ -6,7 +6,6 @@ from .dataset import Dataset, DatasetCollection
 from .outputs import Outputs
 from .parameters import Parameters
 from .tool import Tool
-from .util import WorkState
 
 __all__ = [
     "Connection",
@@ -16,7 +15,6 @@ __all__ = [
     "Outputs",
     "Parameters",
     "Tool",
-    "WorkState",
 ]
 
 __version__ = importlib.metadata.version("nova-galaxy")

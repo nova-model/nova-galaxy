@@ -9,10 +9,11 @@ from bioblend.galaxy.datasets import DatasetClient
 
 if TYPE_CHECKING:
     from .data_store import Datastore
+from nova.common.job import WorkState
+
 from .dataset import Dataset, DatasetCollection
 from .outputs import Outputs
 from .parameters import Parameters
-from .util import WorkState
 
 
 class JobStatus:
