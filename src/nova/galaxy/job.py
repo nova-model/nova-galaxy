@@ -197,7 +197,7 @@ class Job:
         if self.thread:
             self.thread.join()
 
-    def wait_for_results(self, timeout: float = 12000) -> None:
+    def wait_for_results(self, timeout: float = 1200000) -> None:
         """Wait for job to finish."""
         self.galaxy_instance.jobs.wait_for_job(self.id, maxwait=timeout, check=True)
 
