@@ -3,7 +3,9 @@
 from abc import ABC, abstractmethod
 from typing import Tuple
 
-from nova.galaxy import Datastore, Parameters, Tool
+from nova.galaxy.data_store import Datastore
+from nova.galaxy.parameters import Parameters
+from nova.galaxy.tool import Tool
 
 
 class BasicTool(ABC):
@@ -20,11 +22,6 @@ class BasicTool(ABC):
         self.store = store
 
     @abstractmethod
-    def prepare_data(self) -> None:
-        """Prepare data a tool needs to run."""
-        raise Exception("Please implement in a concrete class")
-
-    @abstractmethod
     def prepare_tool(self) -> Tuple[Tool, Parameters]:
         """Prepare tool to run."""
         raise Exception("Please implement in a concrete class")
@@ -34,7 +31,6 @@ class BasicTool(ABC):
         """Get tool results as bytes."""
         raise Exception("Please implement in a concrete class")
 
-    @abstractmethod
     def validate_for_run(self) -> None:
         """Validate tool inputs."""
-        raise Exception("Please implement in a concrete class")
+        return

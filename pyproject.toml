@@ -16,7 +16,7 @@ python = "^3.10"
 bioblend = "^1.5.0"
 tomli = "^2.0.2"
 deprecated = "^1.2.18"
-nova-common = ">=0.1.0"
+nova-common = ">=0.2.0"
 blinker = "^1.9.0"
 pytest-asyncio = "^0.26.0"
 
@@ -78,7 +78,7 @@ omit = [
 command_line = "-m pytest --junit-xml=reports/junit.xml"
 data_file = "reports/.coverage"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 mypy = ">=1.10.0"
 pre-commit = ">=2.20.0"
 coverage = ">=6.4.3"

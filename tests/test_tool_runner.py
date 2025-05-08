@@ -2,19 +2,17 @@
 
 import asyncio
 import os
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
 
 import blinker
 import pytest
 
 from nova.common.job import WorkState
 from nova.common.signals import Signal, ToolCommand, get_signal_id
-from nova.galaxy import Connection, Parameters, Tool
-from nova.galaxy.interfaces import BasicTool
-from nova.galaxy.tool_runner import ToolRunner
+from nova.galaxy import BasicTool, Connection, Parameters, Tool, ToolRunner
 
 GALAXY_URL = os.environ.get("NOVA_GALAXY_TEST_GALAXY_URL", "https://calvera-test.ornl.gov")
-GALAXY_API_KEY = os.environ.get("NOVA_GALAXY_TEST_GALAXY_KEY")
+GALAXY_API_KEY = os.environ.get("NOVA_GALAXY_TEST_GALAXY_KEY", "")
 
 
 class RemoteCommandTool(BasicTool):
@@ -23,21 +21,17 @@ class RemoteCommandTool(BasicTool):
     def __init__(self) -> None:
         super().__init__()
 
-    def prepare_data(self) -> None:
-        pass
-
-    def prepare_tool(self) -> Tool:
+    def prepare_tool(self) -> Tuple[Tool, Parameters]:
         tool_params = Parameters()
         tool = Tool(id="neutrons_remote_command")
         return tool, tool_params
 
     def get_results(self, tool: Tool) -> bytes:
         outputs = tool.get_results()
+        if not outputs:
+            raise Exception("no outputs")
         data = outputs.get_dataset("output1")
         return data.get_content()
-
-    def validate_for_run(self) -> None:
-        pass
 
 
 # this is not how it is usually works since different parts would be in different components. But here we put everything

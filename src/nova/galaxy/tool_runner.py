@@ -165,7 +165,6 @@ class ToolRunner:
             nova_connection = Connection(self.galaxy_url, self.galaxy_api_key).connect()
             store = nova_connection.get_data_store(self.store_factory())
             self.tool.set_store(store)
-            self.tool.prepare_data()
             self.nova_tool, nova_tool_params = self.tool.prepare_tool()
             self.nova_tool.run(data_store=store, params=nova_tool_params, wait=False)
         except Exception as e:
