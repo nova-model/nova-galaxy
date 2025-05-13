@@ -14,3 +14,4 @@ nova-galaxy revolves around several key concepts that facilitate interaction wit
    interactive_tools
    outputs
    parameters
+   tool_runner

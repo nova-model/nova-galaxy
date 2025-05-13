@@ -5,11 +5,11 @@ import time
 from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.datasets import DatasetClient
 
+from nova.common.job import WorkState
 from nova.galaxy.connection import Connection
 from nova.galaxy.dataset import Dataset
 from nova.galaxy.parameters import Parameters
 from nova.galaxy.tool import Tool
-from nova.galaxy.util import WorkState
 
 TEST_TOOL_ID = "neutrons_remote_command"
 TEST_INT_TOOL_ID = "interactive_tool_generic_output"

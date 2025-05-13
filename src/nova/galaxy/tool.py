@@ -6,11 +6,12 @@ from typing import TYPE_CHECKING, List, Optional, Union
 if TYPE_CHECKING:
     from .data_store import Datastore  # Only imports for type checking
 
+from nova.common.job import WorkState
+
 from .dataset import AbstractData
 from .job import Job, JobStatus
 from .outputs import Outputs
 from .parameters import Parameters
-from .util import WorkState
 
 
 class AbstractWork:

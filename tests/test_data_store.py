@@ -4,9 +4,9 @@ from typing import Optional
 
 from bioblend.galaxy import GalaxyInstance
 
+from nova.common.job import WorkState
 from nova.galaxy.connection import Connection
 from nova.galaxy.tool import Tool
-from nova.galaxy.util import WorkState
 
 TEST_INT_TOOL_ID = "interactive_tool_generic_output"
 

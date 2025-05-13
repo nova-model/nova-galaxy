@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "nova-galaxy"
-version = "0.9.1"
+version = "0.10.0"
 description = "Utilties for accessing the ORNL Galaxy instance"
-authors = ["Greg Watson <watsongr@ornl.gov>", "Gregory Cage <cagege@ornl.gov>"]
+authors = ["Greg Watson <watsongr@ornl.gov>", "Gregory Cage <cagege@ornl.gov>", "Sergey Yakubov <yakubovs@ornl.gov>"]
 readme = "README.md"
 license = "MIT"
 keywords = ["NOVA", "Galaxy", "python"]
@@ -16,6 +16,9 @@ python = "^3.10"
 bioblend = "^1.5.0"
 tomli = "^2.0.2"
 deprecated = "^1.2.18"
+nova-common = ">=0.2.0"
+blinker = "^1.9.0"
+pytest-asyncio = "^0.26.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -75,7 +78,7 @@ omit = [
 command_line = "-m pytest --junit-xml=reports/junit.xml"
 data_file = "reports/.coverage"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 mypy = ">=1.10.0"
 pre-commit = ">=2.20.0"
 coverage = ">=6.4.3"

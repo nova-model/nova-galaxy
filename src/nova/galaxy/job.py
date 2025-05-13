@@ -9,10 +9,11 @@ from bioblend.galaxy.datasets import DatasetClient
 
 if TYPE_CHECKING:
     from .data_store import Datastore
+from nova.common.job import WorkState
+
 from .dataset import Dataset, DatasetCollection
 from .outputs import Outputs
 from .parameters import Parameters
-from .util import WorkState
 
 
 class JobStatus:
@@ -196,7 +197,7 @@ class Job:
         if self.thread:
             self.thread.join()
 
-    def wait_for_results(self, timeout: float = 12000) -> None:
+    def wait_for_results(self, timeout: float = 1200000) -> None:
         """Wait for job to finish."""
         self.galaxy_instance.jobs.wait_for_job(self.id, maxwait=timeout, check=True)
 

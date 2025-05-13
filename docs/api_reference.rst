@@ -20,3 +20,6 @@ API Reference
 
 .. automodule:: nova.galaxy.tool
    :members:
+
+.. automodule:: nova.galaxy.tool_runner
+   :members:
