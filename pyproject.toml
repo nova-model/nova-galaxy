@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nova-galaxy"
-version = "0.10.0"
+version = "0.10.1"
 description = "Utilties for accessing the ORNL Galaxy instance"
 authors = ["Greg Watson <watsongr@ornl.gov>", "Gregory Cage <cagege@ornl.gov>", "Sergey Yakubov <yakubovs@ornl.gov>"]
 readme = "README.md"
@@ -13,12 +13,12 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.10"
-bioblend = "^1.5.0"
-tomli = "^2.0.2"
-deprecated = "^1.2.18"
+bioblend = ">=1.5.0"
+tomli = ">=2.0.2"
+deprecated = ">=1.2.18"
 nova-common = ">=0.2.0"
-blinker = "^1.9.0"
-pytest-asyncio = "^0.26.0"
+blinker = ">=1.9.0"
+pytest-asyncio = ">=0.26.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -86,6 +86,6 @@ pytest = "*"
 ruff = ">=0.6.2"
 copier=">=9.3"
 sphinx = "*"
-sphinx-rtd-theme = "^3.0.0rc3"
+sphinx-rtd-theme = ">=3.0.0rc3"
 sphinxcontrib-napoleon = "*"
-tomli = "^2.0.2"
+tomli = ">=2.0.2"
