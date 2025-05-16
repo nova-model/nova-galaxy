@@ -173,3 +173,19 @@ def test_wait_for_results(nova_instance: Connection, galaxy_instance: GalaxyInst
     test_tool.wait_for_results()
     assert test_tool.get_results() is not None
     connection.close()
+
+
+def test_existing_dataset_as_parameter(nova_instance: Connection, galaxy_instance: GalaxyInstance) -> None:
+    with nova_instance.connect() as connection:
+        store = connection.get_data_store(name="nova_galaxy_testing")
+        store.mark_for_cleanup()
+        test_tool = Tool(TEST_TOOL_ID)
+        test_data = Dataset(path="tests/test_files/test_text_file.txt", force_upload=False)
+        test_data.upload(store=store)
+        params = Parameters()
+        params.add_input("test", test_data)
+        # doesn't matter here if tool fails
+        test_tool.run(data_store=store, params=params)
+        history_content = galaxy_instance.histories.show_history(history_id=store.history_id, contents=True)
+        # should only be 2 elements here (tool and the dataset passed as param), since dataset was manually uploaded
+        assert len(history_content) == 2
