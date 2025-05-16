@@ -15,13 +15,15 @@ from bioblend.galaxy.datasets import DatasetClient
 if TYPE_CHECKING:
     from .data_store import Datastore
 
+LOAD_NEUTRON_DATA_TOOL = "neutrons_load_data"
+
 
 class DataState(Enum):
     """The state of a dataset in Galaxy."""
 
-    NONE = 1
-    IN_GALAXY = 2
-    UPLOADING = 3
+    LOCAL = "local"
+    REMOTE = "remote"
+    IN_GALAXY = "in_galaxy"
 
 
 class DatasetRegistrationError(Exception):
@@ -72,12 +74,20 @@ class Dataset(AbstractData):
     If needing to change the path of the Dataset, it is recommended to create a new Dataset instead.
     """
 
-    def __init__(self, path: str = "", name: Optional[str] = None):
+    def __init__(
+        self, path: str = "", name: Optional[str] = None, remote_file: bool = False, force_upload: bool = True
+    ):
         self.path = path
         self.name = name or Path(path).name
         self.id: str = ""
         self.store: Optional["Datastore"] = None
         self.file_type: str = Path(path).suffix
+        self.remote_file = remote_file
+        if remote_file:
+            self.state = DataState.REMOTE
+        else:
+            self.state = DataState.LOCAL
+        self.force_upload = force_upload
         self._content: Any = None
 
     def upload(self, store: "Datastore", name: Optional[str] = None) -> None:
@@ -95,19 +105,29 @@ class Dataset(AbstractData):
         galaxy_instance = store.nova_connection.galaxy_instance
         dataset_client = DatasetClient(galaxy_instance)
         history_id = galaxy_instance.histories.get_histories(name=store.name)[0]["id"]
-        if name:
-            file_name = name
-        else:
-            file_name = self.name
-        if self._content:
-            dataset_info = galaxy_instance.tools.paste_content(
-                content=self._content, history_id=history_id, file_name=file_name
+        if self.remote_file:
+            tool_inputs = store.nova_connection.galaxy_instance.tools.inputs.inputs()  # type: ignore
+            tool_inputs.set_param("filepath", self.path)
+            results = store.nova_connection.galaxy_instance.tools.run_tool(
+                history_id=store.history_id, tool_id=LOAD_NEUTRON_DATA_TOOL, tool_inputs=tool_inputs
             )
+            self.id = results["outputs"][0]["id"]
+            self.store = self.store
+
         else:
-            dataset_info = galaxy_instance.tools.upload_file(path=self.path, history_id=history_id, file_name=file_name)
-        self.id = dataset_info["outputs"][0]["id"]
-        self.store = store
+            file_name = name if name else self.name
+            if self._content:
+                dataset_info = galaxy_instance.tools.paste_content(
+                    content=self._content, history_id=history_id, file_name=file_name
+                )
+            else:
+                dataset_info = galaxy_instance.tools.upload_file(
+                    path=self.path, history_id=history_id, file_name=file_name
+                )
+            self.id = dataset_info["outputs"][0]["id"]
+            self.store = store
         dataset_client.wait_for_dataset(self.id)
+        self.state = DataState.IN_GALAXY
 
     def download(self, local_path: str) -> AbstractData:
         """Downloads this dataset to the local path given."""

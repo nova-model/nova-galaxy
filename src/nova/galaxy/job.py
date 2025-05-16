@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from .data_store import Datastore
 from nova.common.job import WorkState
 
-from .dataset import Dataset, DatasetCollection
+from .dataset import LOAD_NEUTRON_DATA_TOOL, Dataset, DatasetCollection, DataState
 from .outputs import Outputs
 from .parameters import Parameters
 
@@ -143,27 +143,60 @@ class Job:
         """Helper method to upload multiple datasets or collections in parallel."""
         galaxy_instance = self.store.nova_connection.galaxy_instance
         dataset_client = DatasetClient(galaxy_instance)
-        history_id = galaxy_instance.histories.get_histories(name=self.store.name)[0]["id"]
         dataset_ids: Dict[str, str] = {}
         for name, dataset in datasets.items():
             if self.status.state in [WorkState.STOPPING, WorkState.CANCELING]:
                 self.cleanup_datasets(dataset_ids)
                 return None
-            if len(dataset.path) < 1 and dataset.get_content():
-                dataset_info = galaxy_instance.tools.paste_content(
-                    content=str(dataset.get_content()), history_id=history_id, file_name=dataset.name
-                )
+
+            if not dataset.force_upload:
+                self._link_existing_dataset(dataset)
+                if dataset.id:
+                    dataset_ids[name] = dataset.id
+                    dataset.state = DataState.IN_GALAXY
+                    continue
+
+            if dataset.remote_file:
+                self._ingest_dataset(dataset)
             else:
-                dataset_info = galaxy_instance.tools.upload_file(path=dataset.path, history_id=history_id)
-            dataset_ids[name] = dataset_info["outputs"][0]["id"]
-            dataset.id = dataset_info["outputs"][0]["id"]
-            dataset.store = self.store
+                self._upload_single_dataset(dataset)
+            dataset_ids[name] = dataset.id
+            dataset.state = DataState.IN_GALAXY
+
         for dataset_output in dataset_ids.values():
             if self.status.state in [WorkState.STOPPING, WorkState.CANCELING]:
                 self.cleanup_datasets(dataset_ids)
                 return None
             dataset_client.wait_for_dataset(dataset_output)
         return dataset_ids
+
+    def _link_existing_dataset(self, dataset: Dataset) -> None:
+        galaxy_instance = self.store.nova_connection.galaxy_instance
+        dataset_client = DatasetClient(galaxy_instance)
+        existing_data = dataset_client.get_datasets(history_id=self.store.history_id, name=dataset.name)
+        if len(existing_data) > 0:
+            dataset.id = existing_data[0]["id"]
+            dataset.store = self.store
+
+    def _ingest_dataset(self, dataset: Dataset) -> None:
+        tool_inputs = galaxy.tools.inputs.inputs()
+        tool_inputs.set_param("filepath", dataset.path)
+        results = self.galaxy_instance.tools.run_tool(
+            history_id=self.store.history_id, tool_id=LOAD_NEUTRON_DATA_TOOL, tool_inputs=tool_inputs
+        )
+        dataset.id = results["outputs"][0]["id"]
+        dataset.store = self.store
+
+    def _upload_single_dataset(self, dataset: Dataset) -> None:
+        galaxy_instance = self.store.nova_connection.galaxy_instance
+        if len(dataset.path) < 1 and dataset.get_content():
+            dataset_info = galaxy_instance.tools.paste_content(
+                content=str(dataset.get_content()), history_id=self.store.history_id, file_name=dataset.name
+            )
+        else:
+            dataset_info = galaxy_instance.tools.upload_file(path=dataset.path, history_id=self.store.history_id)
+        dataset.id = dataset_info["outputs"][0]["id"]
+        dataset.store = self.store
 
     def cleanup_datasets(self, datasets: Dict[str, str]) -> None:
         galaxy_instance = self.store.nova_connection.galaxy_instance
