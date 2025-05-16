@@ -72,6 +72,18 @@ class Dataset(AbstractData):
     """Singular file that can be uploaded and used in a Galaxy tool.
 
     If needing to change the path of the Dataset, it is recommended to create a new Dataset instead.
+
+    Parameters
+    ----------
+        path: str
+            The path to the file that this dataset is representing. Can be left blank if manually providing content.
+        name: Optional[str]
+            The name of this dataset. Defaults to the filename from the path if provided.
+        remote_file: bool
+            Whether this file is a remote file that upstream has access to. Defaults to False (local file).
+        force_upload: bool
+            Whether to explicitly upload this dataset every time despite another dataset with the same name existing
+            upstream. If False, Nova Galaxy will attempt to link this dataset with an upstream copy. Defaults to True.
     """
 
     def __init__(
