@@ -1,4 +1,4 @@
-## Nova Galaxy 0.12.0 (in progress)
+## Nova Galaxy 1.0.0
 
 ### Nova Galaxy 0.11.7
 - Fixes an issue where calling `Dataset.download` after calling `Dataset.upload` on a remote file would result in an error (thanks to John Duggan). [Pull request 64](https://github.com/nova-sdk/nova-galaxy/pull/64)
